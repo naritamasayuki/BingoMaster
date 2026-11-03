@@ -2,11 +2,77 @@ import Combine
 import Foundation
 import MultipeerConnectivity
 
+enum SpinDurationMode: String, CaseIterable, Identifiable {
+    case short = "short"
+    case normal = "normal"
+    case long = "long"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .short: return "短め"
+        case .normal: return "普通"
+        case .long: return "長い"
+        }
+    }
+
+    var descriptionText: String {
+        switch self {
+        case .short: return "約2.2秒（サクサク進行）"
+        case .normal: return "約4.0秒（標準の減速演出）"
+        case .long: return "約6.5秒（ドキドキじらし演出）"
+        }
+    }
+
+    /// モードごとのルーレット減速インターバル配列
+    var intervals: [TimeInterval] {
+        switch self {
+        case .short:
+            // 約 2.2秒
+            return [
+                0.04, 0.04, 0.05, 0.05, 0.05, 0.06, 0.06, 0.07,
+                0.08, 0.09, 0.10, 0.11, 0.12, 0.14, 0.16, 0.18,
+                0.20, 0.24, 0.28
+            ]
+        case .normal:
+            // 約 4.0秒
+            return [
+                0.04, 0.04, 0.04, 0.05, 0.05, 0.05, 0.05, 0.06,
+                0.06, 0.06, 0.07, 0.07, 0.08, 0.08, 0.09, 0.10,
+                0.11, 0.12, 0.13, 0.15, 0.17, 0.19, 0.22, 0.25,
+                0.28, 0.32, 0.36, 0.42
+            ]
+        case .long:
+            // 約 6.5秒（終盤にゆっくりじらすクライマックス演出）
+            return [
+                0.04, 0.04, 0.04, 0.04, 0.05, 0.05, 0.05, 0.05,
+                0.06, 0.06, 0.06, 0.06, 0.07, 0.07, 0.08, 0.08,
+                0.09, 0.09, 0.10, 0.11, 0.12, 0.13, 0.14, 0.16,
+                0.18, 0.20, 0.22, 0.25, 0.28, 0.32, 0.36, 0.40,
+                0.45, 0.50, 0.55, 0.65
+            ]
+        }
+    }
+}
+
 @MainActor
 final class HostViewModel: ObservableObject {
-    @Published private(set) var drawnNumbers: [Int] = []
+    @Published private(set) var drawnNumbers: [Int] = [] {
+        didSet {
+            BingoStorage.saveHostDrawnNumbers(drawnNumbers)
+        }
+    }
     @Published private(set) var displayNumber: Int? = nil
     @Published private(set) var isSpinning: Bool = false
+    @Published var spinDurationMode: SpinDurationMode = .normal {
+        didSet {
+            BingoStorage.saveHostSpinDurationMode(spinDurationMode.rawValue)
+        }
+    }
+
+    /// 自動保存された過去のゲーム履歴一覧
+    @Published private(set) var pastGameHistory: [PastGameRecord] = []
 
     /// 画面上部に表示するトーストバナーメッセージ（合いの手・リーチ/ビンゴ通知）
     @Published var toastMessage: String? = nil
@@ -15,8 +81,9 @@ final class HostViewModel: ObservableObject {
     /// 参加者ごとの最新ステータス一覧
     @Published private(set) var playerStatuses: [String: PlayerToHostPayload] = [:]
 
-    /// 安全な2段階リセット用アラートフラグ
-    @Published var showResetConfirmationAlert: Bool = false
+    /// 2回確認リセット用アラートフラグ（1回目確認 ➔ 2回目最終確認 ➔ 完了通知）
+    @Published var showFirstResetConfirmationAlert: Bool = false
+    @Published var showSecondResetConfirmationAlert: Bool = false
     @Published var showResetCompletedAlert: Bool = false
 
     let syncManager: MultipeerSyncManager
@@ -39,6 +106,12 @@ final class HostViewModel: ObservableObject {
         let saved = BingoStorage.loadHostDrawnNumbers()
         self.drawnNumbers = saved
         self.displayNumber = saved.last
+        self.pastGameHistory = BingoStorage.loadPastGameHistory()
+
+        if let savedModeRaw = BingoStorage.loadHostSpinDurationMode(),
+           let savedMode = SpinDurationMode(rawValue: savedModeRaw) {
+            self.spinDurationMode = savedMode
+        }
 
         setupSyncCallbacks()
     }
@@ -78,7 +151,7 @@ final class HostViewModel: ObservableObject {
         }
     }
 
-    /// 次の数字を抽選する（約1.5秒間のルーレット減速演出つき）
+    /// 次の数字を抽選する（選択した長さのルーレット減速演出つき）
     func drawNextNumber() {
         let candidates = remainingNumbers
         guard !isSpinning, !candidates.isEmpty else { return }
@@ -86,13 +159,7 @@ final class HostViewModel: ObservableObject {
         isSpinning = true
         speaker.stopSpeaking()
 
-        // 減速インターバル配列（合計 約1.5秒: 0.05秒から0.15秒へ徐々に減速）
-        let intervals: [TimeInterval] = [
-            0.05, 0.05, 0.05, 0.05, 0.06,
-            0.06, 0.07, 0.07, 0.08, 0.09,
-            0.10, 0.11, 0.12, 0.13, 0.14,
-            0.15, 0.15
-        ]
+        let intervals = spinDurationMode.intervals
 
         spinTask?.cancel()
         spinTask = Task { @MainActor in
@@ -115,11 +182,8 @@ final class HostViewModel: ObservableObject {
             }
 
             self.displayNumber = finalNumber
-            self.drawnNumbers.append(finalNumber)
+            self.drawnNumbers.append(finalNumber) // didSet で即座に自動保存される
             self.isSpinning = false
-
-            // 永続化
-            BingoStorage.saveHostDrawnNumbers(self.drawnNumbers)
 
             // 決定チャイム音と振動
             BingoSoundPlayer.shared.playNumberDecided()
@@ -153,11 +217,30 @@ final class HostViewModel: ObservableObject {
         speaker.stopSpeaking()
     }
 
-    /// リセット実行（確認ダイアログ承認後に呼ばれる）
+    /// リセットボタン押下時（1回目の確認を表示）
+    func requestResetGame() {
+        showFirstResetConfirmationAlert = true
+    }
+
+    /// 1回目の確認で「はい」が押された時（2回目の最終確認を表示）
+    func proceedToSecondResetConfirmation() {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 150_000_000)
+            self.showSecondResetConfirmationAlert = true
+        }
+    }
+
+    /// 2回目の最終確認で承認された後にリセットを実行（現在の履歴は過去ゲーム履歴へ自動保存）
     func confirmResetGame() {
         spinTask?.cancel()
         isSpinning = false
         speaker.stopSpeaking()
+
+        // リセット前のゲーム履歴を自動アーカイブ保存
+        if !drawnNumbers.isEmpty {
+            BingoStorage.archiveGameHistory(drawnNumbers)
+            pastGameHistory = BingoStorage.loadPastGameHistory()
+        }
 
         drawnNumbers.removeAll()
         displayNumber = nil
@@ -174,6 +257,23 @@ final class HostViewModel: ObservableObject {
         syncManager.sendHostPayload(resetPayload)
 
         showResetCompletedAlert = true
+    }
+
+    /// 過去の自動保存されたゲーム履歴から状態を復元する
+    func restoreFromPastRecord(_ record: PastGameRecord) {
+        guard !isSpinning else { return }
+        speaker.stopSpeaking()
+
+        drawnNumbers = record.drawnNumbers
+        displayNumber = record.drawnNumbers.last
+
+        let payload = HostToPlayerPayload(
+            action: .drawNumber,
+            latestNumber: self.drawnNumbers.last,
+            drawnNumbers: self.drawnNumbers
+        )
+        syncManager.sendHostPayload(payload)
+        showToast("📂 \(record.formattedDate) のゲーム履歴（\(record.drawnNumbers.count)球）を復元しました", isCelebration: false)
     }
 
     private func showToast(_ text: String, isCelebration: Bool) {

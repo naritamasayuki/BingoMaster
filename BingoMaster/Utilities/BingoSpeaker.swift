@@ -27,7 +27,7 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
     private func configureAudioSession() {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
+            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
             // シミュレータ環境等で設定失敗してもクラッシュさせない
@@ -48,8 +48,9 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
 
         let phrase = formattedPhrase(for: number)
 
-        // 1回目の読み上げ
+        // 1回目の読み上げ（決定チャイム音の余韻の直後に発声）
         let firstUtterance = makeUtterance(text: "\(phrase)！", rate: 0.50, postDelay: 0.35)
+        firstUtterance.preUtteranceDelay = 0.35
         // 2回目の復唱
         let secondUtterance = makeUtterance(text: "\(phrase)！", rate: 0.48, postDelay: 0.40)
 
@@ -84,22 +85,23 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         synthesizer.speak(utterance)
     }
 
-    /// これまでの出目履歴をゆっくり一括読み上げ（rate = 0.42）
+    /// これまでの出目履歴をゆっくり一括読み上げ（参加者がカードを探しやすいよう rate = 0.32 ＆ 1.3秒間隔）
     func speakHistory(_ drawnNumbers: [Int]) {
         guard !drawnNumbers.isEmpty else { return }
         stopSpeaking()
 
-        let introText = "出目履歴をゆっくり読み上げます。全部で\(drawnNumbers.count)個です。"
-        let introUtterance = makeUtterance(text: introText, rate: 0.42, postDelay: 0.50)
+        let introText = "これまでの出目履歴を、ゆっくり読み上げます。全部で、\(drawnNumbers.count)個です。"
+        let introUtterance = makeUtterance(text: introText, rate: 0.35, postDelay: 1.0)
         synthesizer.speak(introUtterance)
 
         for number in drawnNumbers {
-            let text = "\(formattedPhrase(for: number))。"
-            let itemUtterance = makeUtterance(text: text, rate: 0.42, postDelay: 0.45)
+            let column = BingoColumn.column(for: number)
+            let text = "\(column.rawValue)の、、\(number)番。"
+            let itemUtterance = makeUtterance(text: text, rate: 0.32, postDelay: 1.3)
             synthesizer.speak(itemUtterance)
         }
 
-        let outroUtterance = makeUtterance(text: "以上です。", rate: 0.42, postDelay: 0.1)
+        let outroUtterance = makeUtterance(text: "以上、\(drawnNumbers.count)個でした。", rate: 0.35, postDelay: 0.2)
         synthesizer.speak(outroUtterance)
     }
 

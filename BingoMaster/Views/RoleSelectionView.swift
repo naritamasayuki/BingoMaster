@@ -117,8 +117,11 @@ struct RoleSelectionView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 32)
+                .padding(.bottom, 20)
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            AdBannerView()
         }
         .navigationTitle("モード選択")
         .navigationBarHidden(true)

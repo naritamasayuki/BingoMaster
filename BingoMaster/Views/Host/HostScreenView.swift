@@ -5,6 +5,8 @@ struct HostScreenView: View {
     @ObservedObject private var speaker = BingoSpeaker.shared
     let onExitRole: () -> Void
 
+    @State private var showPastHistorySheet: Bool = false
+
     var body: some View {
         ZStack(alignment: .top) {
             Color(uiColor: .systemGroupedBackground)
@@ -18,18 +20,18 @@ struct HostScreenView: View {
                     // 2. 特大ルーレットボール＆抽選コントロール
                     ballAndControlsSection
 
-                    // 3. 直近の出目履歴（横スクロール）＆ゆっくり読み上げボタン
+                    // 3. 直近の出目履歴（横スクロール・自動保存表示）＆ゆっくり読み上げボタン
                     recentHistorySection
 
                     // 4. 1〜75 マスターボード（B・I・N・G・O 列カラー対応）
                     masterBoardSection
 
-                    // 5. リセット＆退出ボタン
+                    // 5. リセット＆過去ゲーム履歴ボタン
                     footerActionsSection
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, viewModel.toastMessage != nil ? 68 : 12)
-                .padding(.bottom, 28)
+                .padding(.bottom, 20)
             }
 
             // 画面上部のトーストバナー（司会アシスト合いの手 / 参加者リーチ・ビンゴ通知）
@@ -40,6 +42,9 @@ struct HostScreenView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(10)
             }
+        }
+        .safeAreaInset(edge: .bottom) {
+            AdBannerView()
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.toastMessage)
         .navigationTitle("司会者モード")
@@ -53,27 +58,40 @@ struct HostScreenView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(role: .destructive) {
-                    viewModel.showResetConfirmationAlert = true
+                    viewModel.requestResetGame()
                 } label: {
                     Label("リセット", systemImage: "arrow.counterclockwise")
                 }
                 .disabled(viewModel.isSpinning || viewModel.drawnNumbers.isEmpty)
             }
         }
-        // 1段階目：リセット確認アラート
-        .alert("ゲームをリセットしますか？", isPresented: $viewModel.showResetConfirmationAlert) {
-            Button("キャンセル", role: .cancel) {}
-            Button("リセットする", role: .destructive) {
+        // 1回目のリセット確認アラート（初期値＝「いいえ」）
+        .alert("ゲームをリセットしますか？（確認 1/2）", isPresented: $viewModel.showFirstResetConfirmationAlert) {
+            Button("いいえ", role: .cancel) {}
+            Button("はい（最終確認へ）", role: .destructive) {
+                viewModel.proceedToSecondResetConfirmation()
+            }
+        } message: {
+            Text("現在のゲームを終了して出目をクリアします。よろしいですか？")
+        }
+        // 2回目の最終リセット確認アラート（初期値＝「いいえ」）
+        .alert("【最終確認】本当にリセットしますか？（確認 2/2）", isPresented: $viewModel.showSecondResetConfirmationAlert) {
+            Button("いいえ", role: .cancel) {}
+            Button("はい、リセットする", role: .destructive) {
                 viewModel.confirmResetGame()
             }
         } message: {
-            Text("これまでの出目履歴がすべて消去され、接続中の参加者全員のカードもリセットされます。")
+            Text("接続中の参加者全員のカードもリセットされます。（※今回の出目履歴は「過去のゲーム履歴」へ自動保存されます）")
         }
-        // 2段階目：リセット完了アラート
+        // リセット完了通知アラート
         .alert("リセット完了", isPresented: $viewModel.showResetCompletedAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("出目履歴をクリアし、参加者へリセット通知を送信しました。新しいゲームを始められます。")
+            Text("今回の履歴を自動保存し、新しいゲームの準備が整いました。")
+        }
+        // 過去の自動保存されたゲーム履歴シート
+        .sheet(isPresented: $showPastHistorySheet) {
+            pastGameHistorySheetView
         }
     }
 
@@ -95,9 +113,14 @@ struct HostScreenView: View {
 
                 Spacer()
 
-                Text("残り \(viewModel.remainingNumbers.count) / 75 球")
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.icloud.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                    Text("自動保存中・残り \(viewModel.remainingNumbers.count)/75 球")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if !bingoPlayers.isEmpty || !reachPlayers.isEmpty {
@@ -182,6 +205,28 @@ struct HostScreenView: View {
             .scaleEffect(viewModel.isSpinning ? 1.05 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: viewModel.displayNumber)
 
+            // ルーレット演出の長さ（短め / 普通 / 長い）3段階選択
+            VStack(spacing: 6) {
+                HStack {
+                    Label("ルーレットの長さ", systemImage: "timer")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(viewModel.spinDurationMode.descriptionText)
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.blue)
+                }
+
+                Picker("ルーレットの長さ", selection: $viewModel.spinDurationMode) {
+                    ForEach(SpinDurationMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .disabled(viewModel.isSpinning)
+            }
+            .padding(.horizontal, 4)
+
             // 抽選ボタン
             Button {
                 viewModel.drawNextNumber()
@@ -232,8 +277,13 @@ struct HostScreenView: View {
     private var recentHistorySection: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("出目履歴（全 \(viewModel.drawnNumbers.count) 個）")
-                    .font(.subheadline.weight(.bold))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("出目履歴（全 \(viewModel.drawnNumbers.count) 個）")
+                        .font(.subheadline.weight(.bold))
+                    Text("1球ごとに自動保存されています")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
 
                 Spacer()
 
@@ -253,7 +303,7 @@ struct HostScreenView: View {
                     Button {
                         viewModel.startReadingHistory()
                     } label: {
-                        Text("🔊 履歴を読み上げ")
+                        Text("🔊 履歴をゆっくり読み上げ")
                             .font(.caption.weight(.bold))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -348,21 +398,87 @@ struct HostScreenView: View {
     }
 
     private var footerActionsSection: some View {
-        Button(role: .destructive) {
-            viewModel.showResetConfirmationAlert = true
-        } label: {
-            HStack {
-                Image(systemName: "trash.fill")
-                Text("ゲームをリセットする")
-                    .font(.subheadline.weight(.bold))
+        VStack(spacing: 10) {
+            if !viewModel.pastGameHistory.isEmpty {
+                Button {
+                    showPastHistorySheet = true
+                } label: {
+                    HStack {
+                        Image(systemName: "clock.arrow.circlepath")
+                        Text("自動保存された過去のゲーム履歴（\(viewModel.pastGameHistory.count)件）")
+                            .font(.subheadline.weight(.bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.blue.opacity(0.12))
+                    .foregroundStyle(Color.blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(Color.red.opacity(0.12))
-            .foregroundStyle(Color.red)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Button(role: .destructive) {
+                viewModel.requestResetGame()
+            } label: {
+                HStack {
+                    Image(systemName: "trash.fill")
+                    Text("ゲームをリセットする")
+                        .font(.subheadline.weight(.bold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.red.opacity(0.12))
+                .foregroundStyle(Color.red)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .disabled(viewModel.isSpinning || viewModel.drawnNumbers.isEmpty)
         }
-        .disabled(viewModel.isSpinning || viewModel.drawnNumbers.isEmpty)
+    }
+
+    private var pastGameHistorySheetView: some View {
+        NavigationStack {
+            List {
+                ForEach(viewModel.pastGameHistory) { record in
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(record.formattedDate)
+                                .font(.subheadline.weight(.bold))
+                            Spacer()
+                            Text("計 \(record.drawnNumbers.count) 球")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Text(
+                            record.drawnNumbers
+                                .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
+                                .joined(separator: "、")
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                        Button {
+                            viewModel.restoreFromPastRecord(record)
+                            showPastHistorySheet = false
+                        } label: {
+                            Label("このゲーム状態を復元する", systemImage: "arrow.uturn.backward.circle.fill")
+                                .font(.caption.weight(.bold))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 2)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            .navigationTitle("過去のゲーム履歴")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        showPastHistorySheet = false
+                    }
+                }
+            }
+        }
     }
 
     private func toastBannerView(message: String, isCelebration: Bool) -> some View {

@@ -22,13 +22,13 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>近くの司会者および参加者とビンゴの出目をリアルタイム同期するためにローカルネットワークを使用します。</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_bingomaster-p2p._tcp</string>
 		<string>_bingomaster-p2p._udp</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>近くの司会者および参加者とビンゴの出目をリアルタイム同期するためにローカルネットワークを使用します。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

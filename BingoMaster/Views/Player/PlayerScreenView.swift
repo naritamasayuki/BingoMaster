@@ -49,6 +49,9 @@ struct PlayerScreenView: View {
                     .ignoresSafeArea()
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            AdBannerView()
+        }
         .navigationTitle("参加者モード")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -82,8 +85,8 @@ struct PlayerScreenView: View {
             Text("リーチやビンゴになった際、司会者の画面に表示・アナウンスされる名前です。")
         }
         .alert("新しいカードに交換しますか？", isPresented: $viewModel.showRegenerateCardConfirmAlert) {
-            Button("キャンセル", role: .cancel) {}
-            Button("交換する", role: .destructive) {
+            Button("いいえ", role: .cancel) {}
+            Button("はい、交換する", role: .destructive) {
                 viewModel.regenerateNewCard()
             }
         } message: {

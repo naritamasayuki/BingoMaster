@@ -7,6 +7,7 @@ struct PlayerScreenView: View {
     @State private var isEditingName: Bool = false
     @State private var draftName: String = ""
     @State private var pulseAnimation: Bool = false
+    @State private var showPastHistorySheet: Bool = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -56,17 +57,36 @@ struct PlayerScreenView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button("モード選択へ") {
-                    onExitRole()
+                Button {
+                    if viewModel.isGameInProgress {
+                        viewModel.antiCheatAlertMessage = "ゲーム進行中（抽選開始後）は、なりすまし司会者や不正なカードリセットを防ぐためモードを切り替えられません。司会者がゲームをリセットした後に切り替えられます。"
+                    } else {
+                        onExitRole()
+                    }
+                } label: {
+                    HStack(spacing: 3) {
+                        if viewModel.isGameInProgress {
+                            Image(systemName: "lock.fill")
+                                .font(.caption2)
+                        }
+                        Text("モード選択へ")
+                            .font(.subheadline)
+                    }
                 }
-                .font(.subheadline)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    draftName = viewModel.playerName
-                    isEditingName = true
+                    if viewModel.isGameInProgress {
+                        viewModel.antiCheatAlertMessage = "ゲーム開始後（1球目抽選後）は、他の参加者へのなりすまし防止のためニックネームを変更できません。"
+                    } else {
+                        draftName = viewModel.playerName
+                        isEditingName = true
+                    }
                 } label: {
-                    Label("名前変更", systemImage: "person.crop.circle")
+                    Label(
+                        viewModel.isGameInProgress ? "名前固定中" : "名前変更",
+                        systemImage: viewModel.isGameInProgress ? "lock.circle" : "person.crop.circle"
+                    )
                 }
             }
         }
@@ -74,6 +94,19 @@ struct PlayerScreenView: View {
             withAnimation(.easeInOut(duration: 0.75).repeatForever(autoreverses: true)) {
                 pulseAnimation = true
             }
+        }
+        .alert(
+            "🔒 不正防止ロック中",
+            isPresented: Binding(
+                get: { viewModel.antiCheatAlertMessage != nil },
+                set: { if !$0 { viewModel.antiCheatAlertMessage = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                viewModel.antiCheatAlertMessage = nil
+            }
+        } message: {
+            Text(viewModel.antiCheatAlertMessage ?? "")
         }
         .alert("ニックネーム変更", isPresented: $isEditingName) {
             TextField("表示名を入力", text: $draftName)
@@ -84,18 +117,13 @@ struct PlayerScreenView: View {
         } message: {
             Text("リーチやビンゴになった際、司会者の画面に表示・アナウンスされる名前です。")
         }
-        .alert("新しいカードに交換しますか？", isPresented: $viewModel.showRegenerateCardConfirmAlert) {
-            Button("いいえ", role: .cancel) {}
-            Button("はい、交換する", role: .destructive) {
-                viewModel.regenerateNewCard()
-            }
-        } message: {
-            Text("現在の5×5カードが新しく作り直されます。よろしいですか？")
-        }
         .alert("ゲームがリセットされました", isPresented: $viewModel.showHostResetNoticeAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("司会者がゲームをリセットしたため、新しいビンゴカードが配られました。")
+            Text("司会者がゲームをリセットしたため、これまでのカード履歴を自動保存し、新しいビンゴカードが配られました。")
+        }
+        .sheet(isPresented: $showPastHistorySheet) {
+            playerPastHistorySheetView
         }
     }
 
@@ -115,6 +143,16 @@ struct PlayerScreenView: View {
                     Text(isConnected ? "司会者と接続中" : "司会者を探しています...")
                         .font(.caption.weight(.bold))
                         .foregroundStyle(isConnected ? Color.primary : Color.secondary)
+
+                    HStack(spacing: 3) {
+                        Image(systemName: "checkmark.icloud.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
+                        Text("自動保存中")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.leading, 4)
                 }
 
                 Text("参加者名: \(viewModel.playerName)")
@@ -201,8 +239,8 @@ struct PlayerScreenView: View {
 
             Text(
                 viewModel.isAutoPunch
-                    ? "司会者が引いた数字のマスを自動的に開けます。"
-                    : "出た数字のマスが金色に光ります。自分でタップして穴を開けましょう！"
+                    ? "司会者が引いた数字のマスを自動的に開けます（途中参加でもそれまでの番号がすべて自動で開きます）。"
+                    : "出た数字のマスが金色に光ります。自分でタップして穴を開けましょう！（自動に切り替えるとこれまでの番号も一括で開きます）"
             )
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -325,19 +363,74 @@ struct PlayerScreenView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
 
-            Button {
-                viewModel.showRegenerateCardConfirmAlert = true
-            } label: {
-                HStack {
-                    Image(systemName: "arrow.triangle.2.circlepath")
-                    Text("新しいカードに交換する")
-                        .font(.footnote.weight(.bold))
+            HStack(spacing: 8) {
+                Image(systemName: "lock.shield.fill")
+                    .foregroundStyle(.green)
+                Text("不正防止ロック中＆自動保存中：アプリを閉じてもカードや穴あけ状態は自動で保存・復元されます（司会者がリセットした時のみ新規配布）")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color(uiColor: .secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            if !viewModel.pastGameHistory.isEmpty {
+                Button {
+                    showPastHistorySheet = true
+                } label: {
+                    HStack {
+                        Image(systemName: "clock.arrow.circlepath")
+                        Text("自動保存された過去のカード履歴（\(viewModel.pastGameHistory.count)件）")
+                            .font(.subheadline.weight(.bold))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.blue.opacity(0.12))
+                    .foregroundStyle(Color.blue)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .foregroundStyle(.secondary)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+    }
+
+    private var playerPastHistorySheetView: some View {
+        NavigationStack {
+            List {
+                ForEach(viewModel.pastGameHistory) { record in
+                    let punchedCount = record.cardCells.filter { $0.isPunched }.count
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(record.formattedDate)
+                                .font(.subheadline.weight(.bold))
+                            Spacer()
+                            Text("ビンゴ \(record.bingoLineCount) / リーチ \(record.reachLineCount)（開封 \(punchedCount)/25 マス）")
+                                .font(.caption.weight(.bold))
+                                .foregroundStyle(.secondary)
+                        }
+
+                        if !record.drawnNumbers.isEmpty {
+                            Text(
+                                "出目(\(record.drawnNumbers.count)球): " +
+                                record.drawnNumbers
+                                    .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
+                                    .joined(separator: "、")
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            .navigationTitle("過去のカード履歴")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        showPastHistorySheet = false
+                    }
+                }
             }
         }
     }

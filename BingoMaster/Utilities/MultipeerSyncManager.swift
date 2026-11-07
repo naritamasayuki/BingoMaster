@@ -19,6 +19,9 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
     /// 司会側：新しい参加者Peerが .connected になった瞬間に呼ばれるコールバック（全出目の即時同期用）
     var onPeerConnectedToHost: ((MCPeerID) -> Void)?
 
+    /// 参加側：司会者Peerと .connected になった瞬間に呼ばれるコールバック（全出目の要求用）
+    var onPeerConnectedToPlayer: ((MCPeerID) -> Void)?
+
     /// 司会側：参加者から PlayerToHostPayload を受信した際のコールバック
     var onReceivePlayerPayload: ((PlayerToHostPayload) -> Void)?
 
@@ -138,9 +141,14 @@ extension MultipeerSyncManager: MCSessionDelegate {
     nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         Task { @MainActor in
             self.updateConnectedPeers()
-            if state == .connected && self.currentRole == .host {
-                // 新しいPeerが接続された瞬間、司会側から現在の全出目を即座に送信して同期させる
-                self.onPeerConnectedToHost?(peerID)
+            if state == .connected {
+                if self.currentRole == .host {
+                    // 新しいPeerが接続された瞬間、司会側から現在の全出目を即座に送信して同期させる
+                    self.onPeerConnectedToHost?(peerID)
+                } else if self.currentRole == .player {
+                    // 参加側からも接続完了時に司会者へこれまでの出目同期をリクエストする
+                    self.onPeerConnectedToPlayer?(peerID)
+                }
             }
         }
     }

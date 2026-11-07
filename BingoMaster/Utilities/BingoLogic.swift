@@ -28,6 +28,14 @@ enum BingoLogic {
         [4, 8, 12, 16, 20]
     ]
 
+    static let columnRanges: [ClosedRange<Int>] = [
+        1...15,
+        16...30,
+        31...45,
+        46...60,
+        61...75
+    ]
+
     /// 5×5 のビンゴカード（25マス）を生成する
     /// - Col 0 (B): 1...15 から重複なし5個
     /// - Col 1 (I): 16...30 から重複なし5個
@@ -35,14 +43,6 @@ enum BingoLogic {
     /// - Col 3 (G): 46...60 から重複なし5個
     /// - Col 4 (O): 61...75 から重複なし5個
     static func generateCard() -> [BingoCardCell] {
-        let columnRanges: [ClosedRange<Int>] = [
-            1...15,
-            16...30,
-            31...45,
-            46...60,
-            61...75
-        ]
-
         // 各列ごとにシャッフルした5個の数字を用意
         let columnNumbers: [[Int]] = columnRanges.map { range in
             Array(range.shuffled().prefix(5))
@@ -80,6 +80,68 @@ enum BingoLogic {
         }
 
         return cells
+    }
+
+    /// 参加者の5×5カード数字配列（25個）が正規のBINGOルール（列ごとの範囲・重複なし・中央FREE）に適合しているか検証（改ざんカード防止）
+    static func isValidCardNumbers(_ numbers: [Int]) -> Bool {
+        guard numbers.count == 25 else { return false }
+        var seenNumbers = Set<Int>()
+
+        for index in 0..<25 {
+            let col = index % 5
+            let num = numbers[index]
+            if index == 12 {
+                if num != 0 { return false }
+                continue
+            }
+            guard columnRanges[col].contains(num) else { return false }
+            if seenNumbers.contains(num) { return false }
+            seenNumbers.insert(num)
+        }
+        return true
+    }
+
+    /// 司会者側での検算用：参加者のロック済み25マス数字と「司会者が実際に引いた出目」を照合し、正当な穴あけ状態のみを反映した25マスを復元する
+    static func reconstructVerifiedCells(
+        cardNumbers: [Int],
+        punchedIndices: Set<Int>,
+        hostDrawnNumbers: [Int]
+    ) -> [BingoCardCell] {
+        guard cardNumbers.count == 25 else { return [] }
+        let drawnSet = Set(hostDrawnNumbers)
+        return cardNumbers.enumerated().map { index, num in
+            let isFree = (index == 12 || num == 0)
+            let isDrawn = isFree || drawnSet.contains(num)
+            // 司会者がまだ引いていない数字は、万が一参加者が穴あけ申告してきても絶対に isPunched = false とする
+            let isPunched = isFree || (isDrawn && punchedIndices.contains(index))
+            return BingoCardCell(
+                id: index,
+                number: isFree ? 0 : num,
+                isFree: isFree,
+                isDrawn: isDrawn,
+                isPunched: isPunched
+            )
+        }
+    }
+
+    /// 司会者側での理論値検算用：手動タップ忘れ・温存を含め、司会者が引いた出目をすべて開けた場合の25マスを復元する
+    static func reconstructTheoreticalCells(
+        cardNumbers: [Int],
+        hostDrawnNumbers: [Int]
+    ) -> [BingoCardCell] {
+        guard cardNumbers.count == 25 else { return [] }
+        let drawnSet = Set(hostDrawnNumbers)
+        return cardNumbers.enumerated().map { index, num in
+            let isFree = (index == 12 || num == 0)
+            let isDrawn = isFree || drawnSet.contains(num)
+            return BingoCardCell(
+                id: index,
+                number: isFree ? 0 : num,
+                isFree: isFree,
+                isDrawn: isDrawn,
+                isPunched: isDrawn
+            )
+        }
     }
 
     /// 25マスの状態から縦・横・斜め12ラインを走査し、リーチ・ビンゴ判定を行う

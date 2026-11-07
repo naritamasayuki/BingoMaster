@@ -5,6 +5,7 @@ struct RoleSelectionView: View {
     @State private var selectedRole: MultipeerSyncManager.Role = .none
     @State private var hostViewModel: HostViewModel?
     @State private var playerViewModel: PlayerViewModel?
+    @State private var didRestoreInitialRole: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -25,6 +26,23 @@ struct RoleSelectionView: View {
                         }
                     }
                 }
+            }
+        }
+        .onAppear {
+            guard !didRestoreInitialRole else { return }
+            didRestoreInitialRole = true
+            // 参加者がゲーム途中でアプリを強制終了（タスクキル）または再インストールしても、再起動時に自動的に元のロック済みカード画面へ復帰させる
+            if let savedRole = BingoStorage.loadActiveRole() {
+                if savedRole == "player" {
+                    enterPlayerMode()
+                    return
+                } else if savedRole == "host" {
+                    enterHostMode()
+                    return
+                }
+            }
+            if !BingoStorage.loadPlayerDrawnNumbers().isEmpty && BingoStorage.loadHostDrawnNumbers().isEmpty {
+                enterPlayerMode()
             }
         }
     }
@@ -179,6 +197,7 @@ struct RoleSelectionView: View {
     // MARK: - Role Switching
 
     private func enterHostMode() {
+        BingoStorage.saveActiveRole("host")
         syncManager.startHosting()
         let vm = HostViewModel(syncManager: syncManager)
         self.hostViewModel = vm
@@ -186,6 +205,7 @@ struct RoleSelectionView: View {
     }
 
     private func enterPlayerMode() {
+        BingoStorage.saveActiveRole("player")
         syncManager.startBrowsing()
         let vm = PlayerViewModel(syncManager: syncManager)
         self.playerViewModel = vm
@@ -193,6 +213,7 @@ struct RoleSelectionView: View {
     }
 
     private func returnToRoleSelection() {
+        BingoStorage.saveActiveRole("none")
         BingoSpeaker.shared.stopSpeaking()
         syncManager.stop()
         hostViewModel = nil

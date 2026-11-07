@@ -6,6 +6,7 @@ struct HostScreenView: View {
     let onExitRole: () -> Void
 
     @State private var showPastHistorySheet: Bool = false
+    @State private var inspectingPlayer: PlayerToHostPayload? = nil
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -93,20 +94,34 @@ struct HostScreenView: View {
         .sheet(isPresented: $showPastHistorySheet) {
             pastGameHistorySheetView
         }
+        // 参加者の5×5カード検算・答え合わせシート
+        .sheet(item: $inspectingPlayer) { player in
+            playerInspectionSheetView(for: player)
+        }
     }
 
     // MARK: - Subviews
 
     private var connectionAndStatusBar: some View {
         let peerCount = viewModel.syncManager.connectedPeerNames.count
-        let bingoPlayers = viewModel.playerStatuses.values.filter { $0.status == .bingo }
-        let reachPlayers = viewModel.playerStatuses.values.filter { $0.status == .reach }
+        let savedPlayerCount = viewModel.playerStatuses.count
+        let bingoPlayers = viewModel.playerStatuses.values
+            .filter { $0.status == .bingo }
+            .sorted { $0.playerName < $1.playerName }
+        let reachPlayers = viewModel.playerStatuses.values
+            .filter { $0.status == .reach }
+            .sorted { $0.playerName < $1.playerName }
+        let normalPlayers = viewModel.playerStatuses.values
+            .filter { $0.status == .normal }
+            .sorted { $0.playerName < $1.playerName }
 
-        return VStack(spacing: 8) {
+        return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label(
-                    peerCount > 0 ? "接続中の参加者: \(peerCount)人" : "参加者の接続を待機中...",
-                    systemImage: peerCount > 0 ? "antenna.radiowaves.left.and.right" : "antenna.radiowaves.left.and.right.slash"
+                    peerCount > 0
+                        ? "接続中: \(peerCount)人（保存済み参加者: \(savedPlayerCount)人）"
+                        : (savedPlayerCount > 0 ? "保存済み参加者: \(savedPlayerCount)人（再接続待機中）" : "参加者の接続を待機中..."),
+                    systemImage: peerCount > 0 ? "antenna.radiowaves.left.and.right" : "person.2.fill"
                 )
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(peerCount > 0 ? Color.green : Color.secondary)
@@ -123,26 +138,65 @@ struct HostScreenView: View {
                 }
             }
 
-            if !bingoPlayers.isEmpty || !reachPlayers.isEmpty {
+            if !viewModel.playerStatuses.isEmpty {
+                Text("💡 参加者名をタップすると5×5カードの答え合わせ（不正検算）ができます")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(bingoPlayers, id: \.playerName) { item in
-                            Text("🎊 ビンゴ: \(item.playerName)")
-                                .font(.caption.weight(.bold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(Color.pink.opacity(0.18))
-                                .foregroundStyle(Color.pink)
-                                .clipShape(Capsule())
+                        ForEach(bingoPlayers) { item in
+                            Button {
+                                inspectingPlayer = item
+                            } label: {
+                                Text("🎊 ビンゴ: \(item.playerName) (\(item.bingoLineCount)ライン)")
+                                    .font(.caption.weight(.bold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.pink.opacity(0.18))
+                                    .foregroundStyle(Color.pink)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
                         }
-                        ForEach(reachPlayers, id: \.playerName) { item in
-                            Text("🔥 リーチ: \(item.playerName) (\(item.reachLineCount))")
-                                .font(.caption.weight(.bold))
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 4)
-                                .background(Color.orange.opacity(0.18))
-                                .foregroundStyle(Color.orange)
-                                .clipShape(Capsule())
+                        ForEach(reachPlayers) { item in
+                            Button {
+                                inspectingPlayer = item
+                            } label: {
+                                let extraNote = item.theoreticalStatus == .bingo ? "・未タップでビンゴ到達!" : (item.untappedDrawnCount > 0 ? "・未タップ\(item.untappedDrawnCount)" : "")
+                                Text("🔥 リーチ: \(item.playerName) (\(item.reachLineCount)\(extraNote))")
+                                    .font(.caption.weight(.bold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.orange.opacity(0.18))
+                                    .foregroundStyle(Color.orange)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        ForEach(normalPlayers) { item in
+                            Button {
+                                inspectingPlayer = item
+                            } label: {
+                                let extraNote: String = {
+                                    if item.theoreticalStatus == .bingo {
+                                        return " (⚠️未タップでビンゴ到達)"
+                                    } else if item.theoreticalStatus == .reach {
+                                        return " (⚠️未タップでリーチ到達)"
+                                    } else if item.untappedDrawnCount > 0 {
+                                        return " (未タップ\(item.untappedDrawnCount))"
+                                    }
+                                    return ""
+                                }()
+                                Text("👤 参加中: \(item.playerName)\(extraNote)")
+                                    .font(.caption.weight(.semibold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.blue.opacity(0.12))
+                                    .foregroundStyle(Color.blue)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -443,24 +497,48 @@ struct HostScreenView: View {
                             Text(record.formattedDate)
                                 .font(.subheadline.weight(.bold))
                             Spacer()
-                            Text("計 \(record.drawnNumbers.count) 球")
+                            Text("計 \(record.drawnNumbers.count) 球・参加者 \(record.players.count) 人")
                                 .font(.caption.weight(.bold))
                                 .foregroundStyle(.secondary)
                         }
 
-                        Text(
-                            record.drawnNumbers
-                                .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
-                                .joined(separator: "、")
-                        )
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        if !record.players.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 6) {
+                                    ForEach(record.players, id: \.playerName) { p in
+                                        let labelText: String = {
+                                            switch p.status {
+                                            case .bingo: return "🎊 \(p.playerName)(ビンゴ)"
+                                            case .reach: return "🔥 \(p.playerName)(リーチ\(p.reachLineCount))"
+                                            case .normal: return "👤 \(p.playerName)"
+                                            }
+                                        }()
+                                        Text(labelText)
+                                            .font(.caption2.weight(.bold))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(Color(uiColor: .tertiarySystemFill))
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                            }
+                        }
+
+                        if !record.drawnNumbers.isEmpty {
+                            Text(
+                                record.drawnNumbers
+                                    .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
+                                    .joined(separator: "、")
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
 
                         Button {
                             viewModel.restoreFromPastRecord(record)
                             showPastHistorySheet = false
                         } label: {
-                            Label("このゲーム状態を復元する", systemImage: "arrow.uturn.backward.circle.fill")
+                            Label("このゲーム状態（出目・参加者）を復元する", systemImage: "arrow.uturn.backward.circle.fill")
                                 .font(.caption.weight(.bold))
                         }
                         .buttonStyle(.borderedProminent)
@@ -475,6 +553,153 @@ struct HostScreenView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("閉じる") {
                         showPastHistorySheet = false
+                    }
+                }
+            }
+        }
+    }
+
+    private func playerInspectionSheetView(for player: PlayerToHostPayload) -> some View {
+        let latestPlayer = viewModel.playerStatuses[player.id] ?? player
+        let cardNums = viewModel.registeredPlayerCards[latestPlayer.id] ?? latestPlayer.cardNumbers
+        let verifiedCells = BingoLogic.reconstructVerifiedCells(
+            cardNumbers: cardNums,
+            punchedIndices: Set(latestPlayer.punchedIndices),
+            hostDrawnNumbers: viewModel.drawnNumbers
+        )
+        let eval = BingoLogic.evaluate(cells: verifiedCells)
+
+        return NavigationStack {
+            ScrollView {
+                VStack(spacing: 16) {
+                    // 参加者サマリー＆検算結果
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text("👤 \(latestPlayer.playerName)")
+                                .font(.title3.weight(.black))
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.shield.fill")
+                                    .foregroundStyle(.green)
+                                Text("司会者側で自動検算済み")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.green)
+                            }
+                        }
+
+                        HStack(spacing: 12) {
+                            Text("確定ビンゴ: \(eval.bingoLineCount)ライン")
+                                .font(.caption.weight(.bold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Color.pink.opacity(0.16))
+                                .foregroundStyle(.pink)
+                                .clipShape(Capsule())
+
+                            Text("確定リーチ: \(eval.reachLineCount)ライン")
+                                .font(.caption.weight(.bold))
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(Color.orange.opacity(0.16))
+                                .foregroundStyle(.orange)
+                                .clipShape(Capsule())
+
+                            if latestPlayer.untappedDrawnCount > 0 {
+                                Text("手動未タップ: \(latestPlayer.untappedDrawnCount)マス")
+                                    .font(.caption.weight(.bold))
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 4)
+                                    .background(Color.yellow.opacity(0.25))
+                                    .foregroundStyle(.primary)
+                                    .clipShape(Capsule())
+                            }
+                        }
+
+                        Text("※この5×5カードは参加開始時に司会者台帳へロック登録されており、途中で変更することはできません。")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(14)
+                    .background(Color(uiColor: .secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                    // 5×5 カードの答え合わせ表示
+                    if verifiedCells.count == 25 {
+                        VStack(spacing: 6) {
+                            HStack(spacing: 6) {
+                                ForEach(BingoColumn.allCases) { col in
+                                    Text(col.rawValue)
+                                        .font(.headline.weight(.black))
+                                        .foregroundStyle(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 6)
+                                        .background(col.color)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                }
+                            }
+
+                            let cols = Array(repeating: GridItem(.flexible(), spacing: 6), count: 5)
+                            LazyVGrid(columns: cols, spacing: 6) {
+                                ForEach(verifiedCells) { cell in
+                                    let col = BingoColumn.allCases[cell.id % 5]
+                                    let isBingoCell = eval.bingoCellIDs.contains(cell.id)
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(
+                                                cell.isPunched
+                                                    ? (isBingoCell ? Color.pink : col.color)
+                                                    : (cell.shouldHighlight ? Color.yellow.opacity(0.28) : Color(uiColor: .tertiarySystemGroupedBackground))
+                                            )
+
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .strokeBorder(
+                                                cell.shouldHighlight ? Color.orange : (isBingoCell ? Color.yellow : Color.clear),
+                                                lineWidth: 2.5
+                                            )
+
+                                        VStack(spacing: 2) {
+                                            if cell.isFree {
+                                                Text("FREE")
+                                                    .font(.caption.weight(.black))
+                                                    .foregroundStyle(.white)
+                                            } else {
+                                                Text("\(cell.number)")
+                                                    .font(.title3.weight(.black))
+                                                    .foregroundStyle(cell.isPunched ? .white : .primary)
+
+                                                if cell.shouldHighlight {
+                                                    Text("未タップ")
+                                                        .font(.system(size: 9, weight: .bold))
+                                                        .foregroundStyle(.orange)
+                                                } else if cell.isPunched {
+                                                    Image(systemName: "checkmark.circle.fill")
+                                                        .font(.caption2)
+                                                        .foregroundStyle(.white)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .aspectRatio(1.0, contentMode: .fit)
+                                }
+                            }
+                        }
+                        .padding(12)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    } else {
+                        Text("参加者のカードデータを同期中です...")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(16)
+            }
+            .navigationTitle("カードの答え合わせ・検算")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        inspectingPlayer = nil
                     }
                 }
             }

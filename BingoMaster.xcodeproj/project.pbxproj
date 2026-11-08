@@ -23,10 +23,24 @@
 		A10000140000000000000001 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000140000000000000001 /* PlayerViewModel.swift */; };
 		A10000150000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000150000000000000001 /* Assets.xcassets */; };
 		A10000160000000000000001 /* AdBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000160000000000000001 /* AdBannerView.swift */; };
+		A10000170000000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000170000000000000001 /* AppConfig.swift */; };
+		A10000180000000000000001 /* BingoLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000001 /* BingoLogger.swift */; };
+		A10000190000000000000001 /* BingoMasterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000001 /* BingoMasterTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AB0000010000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A80000010000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000010000000000000001;
+			remoteInfo = BingoMaster;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A00000010000000000000001 /* BingoMaster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BingoMaster.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A00000020000000000000001 /* BingoMasterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BingoMasterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000010000000000000001 /* BingoMasterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoMasterApp.swift; sourceTree = "<group>"; };
 		A20000020000000000000001 /* BingoColumn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoColumn.swift; sourceTree = "<group>"; };
@@ -44,10 +58,20 @@
 		A20000140000000000000001 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		A20000150000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000160000000000000001 /* AdBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerView.swift; sourceTree = "<group>"; };
+		A20000170000000000000001 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		A20000180000000000000001 /* BingoLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoLogger.swift; sourceTree = "<group>"; };
+		A20000190000000000000001 /* BingoMasterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoMasterTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A30000010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A30000020000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -61,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000010000000000000001 /* BingoMaster */,
+				A40000080000000000000001 /* BingoMasterTests */,
 				A40000070000000000000001 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -91,6 +116,8 @@
 		A40000030000000000000001 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				A20000170000000000000001 /* AppConfig.swift */,
+				A20000180000000000000001 /* BingoLogger.swift */,
 				A20000050000000000000001 /* MultipeerSyncManager.swift */,
 				A20000060000000000000001 /* BingoLogic.swift */,
 				A20000070000000000000001 /* BingoStorage.swift */,
@@ -133,8 +160,17 @@
 			isa = PBXGroup;
 			children = (
 				A00000010000000000000001 /* BingoMaster.app */,
+				A00000020000000000000001 /* BingoMasterTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		A40000080000000000000001 /* BingoMasterTests */ = {
+			isa = PBXGroup;
+			children = (
+				A20000190000000000000001 /* BingoMasterTests.swift */,
+			);
+			path = BingoMasterTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,6 +192,23 @@
 			productName = BingoMaster;
 			productReference = A00000010000000000000001 /* BingoMaster.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A50000020000000000000001 /* BingoMasterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A60000030000000000000001 /* Build configuration list for PBXNativeTarget "BingoMasterTests" */;
+			buildPhases = (
+				A70000030000000000000001 /* Sources */,
+				A30000020000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				AC0000010000000000000001 /* PBXTargetDependency */,
+			);
+			name = BingoMasterTests;
+			productName = BingoMasterTests;
+			productReference = A00000020000000000000001 /* BingoMasterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -181,6 +234,7 @@
 			projectRoot = "";
 			targets = (
 				A50000010000000000000001 /* BingoMaster */,
+				A50000020000000000000001 /* BingoMasterTests */,
 			);
 		};
 /* End PBXProject section */
@@ -205,6 +259,8 @@
 				A10000020000000000000001 /* BingoColumn.swift in Sources */,
 				A10000030000000000000001 /* BingoCardCell.swift in Sources */,
 				A10000040000000000000001 /* SyncPayload.swift in Sources */,
+				A10000170000000000000001 /* AppConfig.swift in Sources */,
+				A10000180000000000000001 /* BingoLogger.swift in Sources */,
 				A10000050000000000000001 /* MultipeerSyncManager.swift in Sources */,
 				A10000060000000000000001 /* BingoLogic.swift in Sources */,
 				A10000070000000000000001 /* BingoStorage.swift in Sources */,
@@ -219,7 +275,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A70000030000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000190000000000000001 /* BingoMasterTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AC0000010000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000010000000000000001 /* BingoMaster */;
+			targetProxy = AB0000010000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A90000010000000000000001 /* Debug */ = {
@@ -231,6 +303,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
@@ -313,6 +386,44 @@
 			};
 			name = Release;
 		};
+		A90000050000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4KR684T6KV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomasterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BingoMaster.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BingoMaster";
+			};
+			name = Debug;
+		};
+		A90000060000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4KR684T6KV;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomasterTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/BingoMaster.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BingoMaster";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -330,6 +441,15 @@
 			buildConfigurations = (
 				A90000030000000000000001 /* Debug */,
 				A90000040000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A60000030000000000000001 /* Build configuration list for PBXNativeTarget "BingoMasterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000050000000000000001 /* Debug */,
+				A90000060000000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

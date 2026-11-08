@@ -6,7 +6,7 @@ struct HostScreenView: View {
     let onExitRole: () -> Void
 
     @State private var showPastHistorySheet: Bool = false
-    @State private var inspectingPlayer: PlayerToHostPayload? = nil
+    @State private var inspectingPlayer: PlayerToHostPayload?
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -100,7 +100,7 @@ struct HostScreenView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - サブビュー構成
 
     private var connectionAndStatusBar: some View {
         let peerCount = viewModel.syncManager.connectedPeerNames.count

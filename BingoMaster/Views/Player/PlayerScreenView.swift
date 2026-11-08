@@ -127,7 +127,7 @@ struct PlayerScreenView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - サブビュー構成
 
     private var connectionAndLatestNumberHeader: some View {
         let isConnected = !viewModel.syncManager.connectedPeerNames.isEmpty

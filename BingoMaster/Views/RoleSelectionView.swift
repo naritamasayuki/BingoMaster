@@ -194,7 +194,7 @@ struct RoleSelectionView: View {
         .shadow(color: gradientColors.first?.opacity(0.35) ?? .clear, radius: 10, y: 5)
     }
 
-    // MARK: - Role Switching
+    // MARK: - モード切替制御
 
     private func enterHostMode() {
         BingoStorage.saveActiveRole("host")

@@ -35,10 +35,7 @@ struct PastGameRecord: Identifiable, Codable, Equatable {
     }
 
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        return formatter.string(from: savedAt)
+        BingoStorage.formatJapaneseDate(savedAt)
     }
 }
 
@@ -51,15 +48,115 @@ struct PastPlayerGameRecord: Identifiable, Codable, Equatable {
     let reachLineCount: Int
 
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        return formatter.string(from: savedAt)
+        BingoStorage.formatJapaneseDate(savedAt)
     }
 }
 
+/// ストレージ層を抽象化するプロトコル。
+/// ユニットテスト時に実機の UserDefaults や Keychain を汚染せずインメモリで高速検証できるようにするため定義している。
+protocol BingoStorageProviding {
+    func saveActiveRole(_ role: String)
+    func loadActiveRole() -> String?
+
+    func saveHostDrawnNumbers(_ numbers: [Int])
+    func loadHostDrawnNumbers() -> [Int]
+    func saveHostPlayerStatuses(_ statuses: [String: PlayerToHostPayload])
+    func loadHostPlayerStatuses() -> [String: PlayerToHostPayload]
+    func saveHostRegisteredCards(_ cards: [String: [Int]])
+    func loadHostRegisteredCards() -> [String: [Int]]
+    func clearHostData()
+    func loadOrCreateHostID() -> String
+    func loadOrCreateHostGameSessionID() -> String
+    @discardableResult func regenerateHostGameSessionID() -> String
+    func saveHostSpinDurationMode(_ rawValue: String)
+    func loadHostSpinDurationMode() -> String?
+    func archiveGameHistory(_ drawnNumbers: [Int], players: [PlayerToHostPayload])
+    func loadPastGameHistory() -> [PastGameRecord]
+
+    func loadOrCreatePlayerID() -> String
+    func savePlayerCardCells(_ cells: [BingoCardCell])
+    func loadPlayerCardCells() -> [BingoCardCell]?
+    func savePlayerIsAutoPunch(_ isAutoPunch: Bool)
+    func loadPlayerIsAutoPunch() -> Bool
+    func savePlayerName(_ name: String)
+    func loadPlayerName() -> String?
+    func clearPlayerCardCells()
+    func savePlayerLockedHostID(_ hostID: String)
+    func loadPlayerLockedHostID() -> String?
+    func clearPlayerLockedHostID()
+    func savePlayerGameSessionID(_ sessionID: String)
+    func loadPlayerGameSessionID() -> String?
+    func savePlayerDrawnNumbers(_ numbers: [Int])
+    func loadPlayerDrawnNumbers() -> [Int]
+    func archivePlayerGameHistory(
+        cardCells: [BingoCardCell],
+        drawnNumbers: [Int],
+        bingoLineCount: Int,
+        reachLineCount: Int
+    )
+    func loadPlayerPastGameHistory() -> [PastPlayerGameRecord]
+}
+
+/// 本番環境用の永続化ストレージ実装（UserDefaults + Keychain 二重保護）。
+struct DefaultBingoStorage: BingoStorageProviding {
+    static let shared = DefaultBingoStorage()
+
+    func saveActiveRole(_ role: String) { BingoStorage.saveActiveRole(role) }
+    func loadActiveRole() -> String? { BingoStorage.loadActiveRole() }
+
+    func saveHostDrawnNumbers(_ numbers: [Int]) { BingoStorage.saveHostDrawnNumbers(numbers) }
+    func loadHostDrawnNumbers() -> [Int] { BingoStorage.loadHostDrawnNumbers() }
+    func saveHostPlayerStatuses(_ statuses: [String: PlayerToHostPayload]) { BingoStorage.saveHostPlayerStatuses(statuses) }
+    func loadHostPlayerStatuses() -> [String: PlayerToHostPayload] { BingoStorage.loadHostPlayerStatuses() }
+    func saveHostRegisteredCards(_ cards: [String: [Int]]) { BingoStorage.saveHostRegisteredCards(cards) }
+    func loadHostRegisteredCards() -> [String: [Int]] { BingoStorage.loadHostRegisteredCards() }
+    func clearHostData() { BingoStorage.clearHostData() }
+    func loadOrCreateHostID() -> String { BingoStorage.loadOrCreateHostID() }
+    func loadOrCreateHostGameSessionID() -> String { BingoStorage.loadOrCreateHostGameSessionID() }
+    @discardableResult func regenerateHostGameSessionID() -> String { BingoStorage.regenerateHostGameSessionID() }
+    func saveHostSpinDurationMode(_ rawValue: String) { BingoStorage.saveHostSpinDurationMode(rawValue) }
+    func loadHostSpinDurationMode() -> String? { BingoStorage.loadHostSpinDurationMode() }
+    func archiveGameHistory(_ drawnNumbers: [Int], players: [PlayerToHostPayload]) {
+        BingoStorage.archiveGameHistory(drawnNumbers, players: players)
+    }
+    func loadPastGameHistory() -> [PastGameRecord] { BingoStorage.loadPastGameHistory() }
+
+    func loadOrCreatePlayerID() -> String { BingoStorage.loadOrCreatePlayerID() }
+    func savePlayerCardCells(_ cells: [BingoCardCell]) { BingoStorage.savePlayerCardCells(cells) }
+    func loadPlayerCardCells() -> [BingoCardCell]? { BingoStorage.loadPlayerCardCells() }
+    func savePlayerIsAutoPunch(_ isAutoPunch: Bool) { BingoStorage.savePlayerIsAutoPunch(isAutoPunch) }
+    func loadPlayerIsAutoPunch() -> Bool { BingoStorage.loadPlayerIsAutoPunch() }
+    func savePlayerName(_ name: String) { BingoStorage.savePlayerName(name) }
+    func loadPlayerName() -> String? { BingoStorage.loadPlayerName() }
+    func clearPlayerCardCells() { BingoStorage.clearPlayerCardCells() }
+    func savePlayerLockedHostID(_ hostID: String) { BingoStorage.savePlayerLockedHostID(hostID) }
+    func loadPlayerLockedHostID() -> String? { BingoStorage.loadPlayerLockedHostID() }
+    func clearPlayerLockedHostID() { BingoStorage.clearPlayerLockedHostID() }
+    func savePlayerGameSessionID(_ sessionID: String) { BingoStorage.savePlayerGameSessionID(sessionID) }
+    func loadPlayerGameSessionID() -> String? { BingoStorage.loadPlayerGameSessionID() }
+    func savePlayerDrawnNumbers(_ numbers: [Int]) { BingoStorage.savePlayerDrawnNumbers(numbers) }
+    func loadPlayerDrawnNumbers() -> [Int] { BingoStorage.loadPlayerDrawnNumbers() }
+    func archivePlayerGameHistory(
+        cardCells: [BingoCardCell],
+        drawnNumbers: [Int],
+        bingoLineCount: Int,
+        reachLineCount: Int
+    ) {
+        BingoStorage.archivePlayerGameHistory(
+            cardCells: cardCells,
+            drawnNumbers: drawnNumbers,
+            bingoLineCount: bingoLineCount,
+            reachLineCount: reachLineCount
+        )
+    }
+    func loadPlayerPastGameHistory() -> [PastPlayerGameRecord] { BingoStorage.loadPlayerPastGameHistory() }
+}
+
 enum BingoStorage {
+    static let shared: BingoStorageProviding = DefaultBingoStorage.shared
+
     private static let keychainService = "com.naritamasayuki.bingomaster.anticheat"
+    private static let maxHistoryCount = 20
 
     private static let activeRoleKey = "BingoMaster.activeRole"
     private static let hostIDKey = "BingoMaster.host.uniqueID"
@@ -79,18 +176,63 @@ enum BingoStorage {
     private static let playerNameKey = "BingoMaster.player.playerName"
     private static let playerPastGameHistoryKey = "BingoMaster.player.pastGameHistory"
 
+    /// DateFormatter の生成コストは高いため、一覧スクロール時のフレーム落ちを防ぐ目的で静的キャッシュして再利用する
+    private static let japaneseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateFormat = "yyyy/MM/dd HH:mm"
+        return formatter
+    }()
+
+    static func formatJapaneseDate(_ date: Date) -> String {
+        japaneseDateFormatter.string(from: date)
+    }
+
+    // MARK: - Generic JSON Storage Helpers (堅牢なエラーハンドリング＆ログ出力)
+
+    private static func saveCodable<T: Encodable>(_ value: T, forKey key: String, mirrorToKeychain: Bool = false) {
+        do {
+            let data = try JSONEncoder().encode(value)
+            UserDefaults.standard.set(data, forKey: key)
+            if mirrorToKeychain {
+                saveToKeychain(data: data, account: key)
+            }
+        } catch {
+            BingoLogger.logError(
+                BingoLogger.storage,
+                context: "JSONエンコード保存に失敗しました (key: \(key))",
+                error: error
+            )
+        }
+    }
+
+    private static func loadCodable<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
+        guard let data = UserDefaults.standard.data(forKey: key) else {
+            return nil
+        }
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            BingoLogger.logError(
+                BingoLogger.storage,
+                context: "UserDefaultsからのJSONデコードに失敗しました (key: \(key))",
+                error: error
+            )
+            return nil
+        }
+    }
+
     // MARK: - Active Role (アプリ強制終了時のモード自動復帰用)
 
     static func saveActiveRole(_ role: String) {
         UserDefaults.standard.set(role, forKey: activeRoleKey)
-        UserDefaults.standard.synchronize()
     }
 
     static func loadActiveRole() -> String? {
-        return UserDefaults.standard.string(forKey: activeRoleKey)
+        UserDefaults.standard.string(forKey: activeRoleKey)
     }
 
-    // MARK: - Keychain Helper (アプリを落としても・再インストールしても消えない不正防止領域)
+    // MARK: - Keychain Helper (アプリ再インストールによる不正なカード引き直しを防ぐため Keychain にも二重保存する)
 
     private static func saveToKeychain(data: Data, account: String) {
         let query: [String: Any] = [
@@ -103,7 +245,13 @@ enum BingoStorage {
         var addQuery = query
         addQuery[kSecValueData as String] = data
         addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-        SecItemAdd(addQuery as CFDictionary, nil)
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        if status != errSecSuccess {
+            BingoLogger.logWarning(
+                BingoLogger.storage,
+                context: "Keychain保存が非成功ステータスを返しました (account: \(account), OSStatus: \(status))"
+            )
+        }
     }
 
     private static func loadFromKeychain(account: String) -> Data? {
@@ -116,6 +264,12 @@ enum BingoStorage {
         ]
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            BingoLogger.logWarning(
+                BingoLogger.storage,
+                context: "Keychain読み出し時に予期しないステータスが発生しました (account: \(account), OSStatus: \(status))"
+            )
+        }
         guard status == errSecSuccess else { return nil }
         return result as? Data
     }
@@ -126,63 +280,46 @@ enum BingoStorage {
             kSecAttrService as String: keychainService,
             kSecAttrAccount as String: account
         ]
-        SecItemDelete(query as CFDictionary)
+        let status = SecItemDelete(query as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            BingoLogger.logWarning(
+                BingoLogger.storage,
+                context: "Keychain削除時に予期しないステータスが発生しました (account: \(account), OSStatus: \(status))"
+            )
+        }
     }
 
-    // MARK: - Host Storage (進行中の出目履歴・参加者一覧・参加者カード台帳の自動保存)
+    // MARK: - Host Storage
 
     static func saveHostDrawnNumbers(_ numbers: [Int]) {
-        if let data = try? JSONEncoder().encode(numbers) {
-            UserDefaults.standard.set(data, forKey: hostDrawnNumbersKey)
-            UserDefaults.standard.synchronize()
-        }
+        saveCodable(numbers, forKey: hostDrawnNumbersKey)
     }
 
     static func loadHostDrawnNumbers() -> [Int] {
-        guard let data = UserDefaults.standard.data(forKey: hostDrawnNumbersKey),
-              let numbers = try? JSONDecoder().decode([Int].self, from: data) else {
-            return []
-        }
-        return numbers
+        loadCodable([Int].self, forKey: hostDrawnNumbersKey) ?? []
     }
 
-    /// 司会者側で把握している参加者一覧＆ステータス（リーチ・ビンゴ・参加中）を自動保存
     static func saveHostPlayerStatuses(_ statuses: [String: PlayerToHostPayload]) {
-        if let data = try? JSONEncoder().encode(statuses) {
-            UserDefaults.standard.set(data, forKey: hostPlayerStatusesKey)
-            UserDefaults.standard.synchronize()
-        }
+        saveCodable(statuses, forKey: hostPlayerStatusesKey)
     }
 
     static func loadHostPlayerStatuses() -> [String: PlayerToHostPayload] {
-        guard let data = UserDefaults.standard.data(forKey: hostPlayerStatusesKey),
-              let statuses = try? JSONDecoder().decode([String: PlayerToHostPayload].self, from: data) else {
-            return [:]
-        }
-        return statuses
+        loadCodable([String: PlayerToHostPayload].self, forKey: hostPlayerStatusesKey) ?? [:]
     }
 
-    /// 司会者側でロック保存する「参加者ごとの5×5カード数字配列（不正引き直し防止台帳）」
+    /// 参加者がゲーム途中でアプリを再インストールして有利なカードを引き直す不正を防ぐため、司会者側でも参加者の初期カードを台帳保存する
     static func saveHostRegisteredCards(_ cards: [String: [Int]]) {
-        if let data = try? JSONEncoder().encode(cards) {
-            UserDefaults.standard.set(data, forKey: hostRegisteredCardsKey)
-            UserDefaults.standard.synchronize()
-        }
+        saveCodable(cards, forKey: hostRegisteredCardsKey)
     }
 
     static func loadHostRegisteredCards() -> [String: [Int]] {
-        guard let data = UserDefaults.standard.data(forKey: hostRegisteredCardsKey),
-              let cards = try? JSONDecoder().decode([String: [Int]].self, from: data) else {
-            return [:]
-        }
-        return cards
+        loadCodable([String: [Int]].self, forKey: hostRegisteredCardsKey) ?? [:]
     }
 
     static func clearHostData() {
         UserDefaults.standard.removeObject(forKey: hostDrawnNumbersKey)
         UserDefaults.standard.removeObject(forKey: hostPlayerStatusesKey)
         UserDefaults.standard.removeObject(forKey: hostRegisteredCardsKey)
-        UserDefaults.standard.synchronize()
     }
 
     static func loadOrCreateHostID() -> String {
@@ -200,7 +337,6 @@ enum BingoStorage {
         }
         let newID = UUID().uuidString
         UserDefaults.standard.set(newID, forKey: hostIDKey)
-        UserDefaults.standard.synchronize()
         if let data = newID.data(using: .utf8) {
             saveToKeychain(data: data, account: hostIDKey)
         }
@@ -213,7 +349,6 @@ enum BingoStorage {
         }
         let newID = UUID().uuidString
         UserDefaults.standard.set(newID, forKey: hostGameSessionIDKey)
-        UserDefaults.standard.synchronize()
         return newID
     }
 
@@ -221,20 +356,17 @@ enum BingoStorage {
     static func regenerateHostGameSessionID() -> String {
         let newID = UUID().uuidString
         UserDefaults.standard.set(newID, forKey: hostGameSessionIDKey)
-        UserDefaults.standard.synchronize()
         return newID
     }
 
     static func saveHostSpinDurationMode(_ rawValue: String) {
         UserDefaults.standard.set(rawValue, forKey: hostSpinDurationModeKey)
-        UserDefaults.standard.synchronize()
     }
 
     static func loadHostSpinDurationMode() -> String? {
-        return UserDefaults.standard.string(forKey: hostSpinDurationModeKey)
+        UserDefaults.standard.string(forKey: hostSpinDurationModeKey)
     }
 
-    /// ゲーム履歴（出目＋参加者一覧）をアーカイブとして自動保存（最新20件まで保持）
     static func archiveGameHistory(_ drawnNumbers: [Int], players: [PlayerToHostPayload]) {
         guard !drawnNumbers.isEmpty || !players.isEmpty else { return }
         var history = loadPastGameHistory()
@@ -246,26 +378,18 @@ enum BingoStorage {
             players: sortedPlayers
         )
         history.insert(record, at: 0)
-        if history.count > 20 {
-            history = Array(history.prefix(20))
+        if history.count > maxHistoryCount {
+            history = Array(history.prefix(maxHistoryCount))
         }
-        if let data = try? JSONEncoder().encode(history) {
-            UserDefaults.standard.set(data, forKey: hostPastGameHistoryKey)
-            UserDefaults.standard.synchronize()
-        }
+        saveCodable(history, forKey: hostPastGameHistoryKey)
     }
 
     static func loadPastGameHistory() -> [PastGameRecord] {
-        guard let data = UserDefaults.standard.data(forKey: hostPastGameHistoryKey),
-              let history = try? JSONDecoder().decode([PastGameRecord].self, from: data) else {
-            return []
-        }
-        return history
+        loadCodable([PastGameRecord].self, forKey: hostPastGameHistoryKey) ?? []
     }
 
-    // MARK: - Player Storage (UserDefaults + Keychain 二重ロック保存でアプリ強制終了・再インストール時の不正を防止)
+    // MARK: - Player Storage
 
-    /// 参加者端末の固有IDを取得（Keychainにも保存するためアプリ削除・再起動でも不変）
     static func loadOrCreatePlayerID() -> String {
         if let keychainData = loadFromKeychain(account: playerIDKey),
            let idString = String(data: keychainData, encoding: .utf8),
@@ -281,68 +405,66 @@ enum BingoStorage {
         }
         let newID = UUID().uuidString
         UserDefaults.standard.set(newID, forKey: playerIDKey)
-        UserDefaults.standard.synchronize()
         if let data = newID.data(using: .utf8) {
             saveToKeychain(data: data, account: playerIDKey)
         }
         return newID
     }
 
-    /// 参加者の5×5カードを UserDefaults と Keychain の両方に即時自動保存（アプリを落としても絶対に変わらない）
     static func savePlayerCardCells(_ cells: [BingoCardCell]) {
-        if let data = try? JSONEncoder().encode(cells) {
-            UserDefaults.standard.set(data, forKey: playerCardCellsKey)
-            UserDefaults.standard.synchronize()
-            saveToKeychain(data: data, account: playerCardCellsKey)
-        }
+        saveCodable(cells, forKey: playerCardCellsKey, mirrorToKeychain: true)
     }
 
     static func loadPlayerCardCells() -> [BingoCardCell]? {
-        if let data = UserDefaults.standard.data(forKey: playerCardCellsKey),
-           let cells = try? JSONDecoder().decode([BingoCardCell].self, from: data),
+        if let cells = loadCodable([BingoCardCell].self, forKey: playerCardCellsKey),
            cells.count == 25 {
             return cells
         }
-        // UserDefaults が消去されていた場合でも Keychain から強制復元（不正防止）
-        if let keychainData = loadFromKeychain(account: playerCardCellsKey),
-           let cells = try? JSONDecoder().decode([BingoCardCell].self, from: keychainData),
-           cells.count == 25 {
-            UserDefaults.standard.set(keychainData, forKey: playerCardCellsKey)
-            UserDefaults.standard.synchronize()
-            return cells
+        // アプリを削除・再インストールして UserDefaults を消去した場合でも Keychain から元のカードを復元し、不正な引き直しを防ぐ
+        if let keychainData = loadFromKeychain(account: playerCardCellsKey) {
+            do {
+                let cells = try JSONDecoder().decode([BingoCardCell].self, from: keychainData)
+                if cells.count == 25 {
+                    UserDefaults.standard.set(keychainData, forKey: playerCardCellsKey)
+                    BingoLogger.logInfo(BingoLogger.storage, message: "Keychainバックアップから参加者の5×5カードを復元しました")
+                    return cells
+                }
+            } catch {
+                BingoLogger.logError(
+                    BingoLogger.storage,
+                    context: "Keychain内の参加者カードデータのデコードに失敗しました",
+                    error: error
+                )
+            }
         }
         return nil
     }
 
     static func savePlayerIsAutoPunch(_ isAutoPunch: Bool) {
         UserDefaults.standard.set(isAutoPunch, forKey: playerIsAutoPunchKey)
-        UserDefaults.standard.synchronize()
     }
 
     static func loadPlayerIsAutoPunch() -> Bool {
-        return UserDefaults.standard.bool(forKey: playerIsAutoPunchKey)
+        UserDefaults.standard.bool(forKey: playerIsAutoPunchKey)
     }
 
     static func savePlayerName(_ name: String) {
         UserDefaults.standard.set(name, forKey: playerNameKey)
-        UserDefaults.standard.synchronize()
     }
 
     static func loadPlayerName() -> String? {
-        return UserDefaults.standard.string(forKey: playerNameKey)
+        UserDefaults.standard.string(forKey: playerNameKey)
     }
 
     static func clearPlayerCardCells() {
         UserDefaults.standard.removeObject(forKey: playerCardCellsKey)
         UserDefaults.standard.removeObject(forKey: playerDrawnNumbersKey)
-        UserDefaults.standard.synchronize()
         deleteFromKeychain(account: playerCardCellsKey)
         deleteFromKeychain(account: playerDrawnNumbersKey)
     }
 
     static func savePlayerLockedHostID(_ hostID: String) {
         UserDefaults.standard.set(hostID, forKey: playerLockedHostIDKey)
-        UserDefaults.standard.synchronize()
         if let data = hostID.data(using: .utf8) {
             saveToKeychain(data: data, account: playerLockedHostIDKey)
         }
@@ -363,13 +485,11 @@ enum BingoStorage {
 
     static func clearPlayerLockedHostID() {
         UserDefaults.standard.removeObject(forKey: playerLockedHostIDKey)
-        UserDefaults.standard.synchronize()
         deleteFromKeychain(account: playerLockedHostIDKey)
     }
 
     static func savePlayerGameSessionID(_ sessionID: String) {
         UserDefaults.standard.set(sessionID, forKey: playerGameSessionIDKey)
-        UserDefaults.standard.synchronize()
         if let data = sessionID.data(using: .utf8) {
             saveToKeychain(data: data, account: playerGameSessionIDKey)
         }
@@ -389,26 +509,27 @@ enum BingoStorage {
     }
 
     static func savePlayerDrawnNumbers(_ numbers: [Int]) {
-        if let data = try? JSONEncoder().encode(numbers) {
-            UserDefaults.standard.set(data, forKey: playerDrawnNumbersKey)
-            UserDefaults.standard.synchronize()
-            saveToKeychain(data: data, account: playerDrawnNumbersKey)
-        }
+        saveCodable(numbers, forKey: playerDrawnNumbersKey, mirrorToKeychain: true)
     }
 
     static func loadPlayerDrawnNumbers() -> [Int] {
-        if let data = UserDefaults.standard.data(forKey: playerDrawnNumbersKey),
-           let numbers = try? JSONDecoder().decode([Int].self, from: data) {
+        if let numbers = loadCodable([Int].self, forKey: playerDrawnNumbersKey) {
             return numbers
         }
-        if let keychainData = loadFromKeychain(account: playerDrawnNumbersKey),
-           let numbers = try? JSONDecoder().decode([Int].self, from: keychainData) {
-            return numbers
+        if let keychainData = loadFromKeychain(account: playerDrawnNumbersKey) {
+            do {
+                return try JSONDecoder().decode([Int].self, from: keychainData)
+            } catch {
+                BingoLogger.logError(
+                    BingoLogger.storage,
+                    context: "Keychain内の出目配列デコードに失敗しました",
+                    error: error
+                )
+            }
         }
         return []
     }
 
-    /// 参加者側のゲーム結果・カード履歴を自動アーカイブ保存（最新20件まで保持）
     static func archivePlayerGameHistory(
         cardCells: [BingoCardCell],
         drawnNumbers: [Int],
@@ -428,20 +549,13 @@ enum BingoStorage {
             reachLineCount: reachLineCount
         )
         history.insert(record, at: 0)
-        if history.count > 20 {
-            history = Array(history.prefix(20))
+        if history.count > maxHistoryCount {
+            history = Array(history.prefix(maxHistoryCount))
         }
-        if let data = try? JSONEncoder().encode(history) {
-            UserDefaults.standard.set(data, forKey: playerPastGameHistoryKey)
-            UserDefaults.standard.synchronize()
-        }
+        saveCodable(history, forKey: playerPastGameHistoryKey)
     }
 
     static func loadPlayerPastGameHistory() -> [PastPlayerGameRecord] {
-        guard let data = UserDefaults.standard.data(forKey: playerPastGameHistoryKey),
-              let history = try? JSONDecoder().decode([PastPlayerGameRecord].self, from: data) else {
-            return []
-        }
-        return history
+        loadCodable([PastPlayerGameRecord].self, forKey: playerPastGameHistoryKey) ?? []
     }
 }

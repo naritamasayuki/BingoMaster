@@ -1,15 +1,27 @@
 import AVFoundation
 import Foundation
 
+/// 日本語音声読み上げ機能の抽象プロトコル。
+/// テスト実行時に AVSpeechSynthesizer を起動せず読み上げ呼び出し履歴を検証できるようにするため定義している。
 @MainActor
-final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegate {
+protocol BingoSpeechProviding: AnyObject {
+    var isSpeaking: Bool { get }
+    func formattedPhrase(for number: Int) -> String
+    @discardableResult func speakDrawnNumber(_ number: Int, totalDrawnCount: Int) -> String?
+    func speakPlayerStatus(playerName: String, status: PlayerToHostPayload.PlayerStatus)
+    func speakHistory(_ drawnNumbers: [Int])
+    func stopSpeaking()
+}
+
+@MainActor
+final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegate, BingoSpeechProviding {
     static let shared = BingoSpeaker()
 
     @Published private(set) var isSpeaking: Bool = false
 
     private let synthesizer = AVSpeechSynthesizer()
 
-    /// 司会アシスト（合いの手）のランダムフレーズ一覧
+    /// 司会者が1人で進行する際も会場が盛り上がるよう、中盤以降にランダムで挿入する合いの手フレーズ
     private let interjectionPhrases: [String] = [
         "リーチの人、いますか〜？",
         "ビンゴの人、おりますか〜？",
@@ -30,34 +42,37 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
             try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
             try session.setActive(true)
         } catch {
-            // シミュレータ環境等で設定失敗してもクラッシュさせない
+            BingoLogger.logError(
+                BingoLogger.speech,
+                context: "音声合成用AVAudioSessionの設定に失敗しました",
+                error: error
+            )
         }
     }
 
-    /// 番号の日本語読み上げ文字列を生成（例: "Bの、7番"）
     func formattedPhrase(for number: Int) -> String {
         let column = BingoColumn.column(for: number)
         return "\(column.rawValue)の、\(number)番"
     }
 
-    /// 数字確定時の2回繰り返し読み上げ + 条件を満たせば40%の確率で合いの手を発声
-    /// - Returns: 発生した合いの手メッセージ（トースト表示用、発生しない場合は nil）
     @discardableResult
     func speakDrawnNumber(_ number: Int, totalDrawnCount: Int) -> String? {
+        guard (1...75).contains(number) else {
+            BingoLogger.logWarning(BingoLogger.speech, context: "範囲外の抽選番号(\(number))の読み上げ要求を無視しました")
+            return nil
+        }
         stopSpeaking()
 
         let phrase = formattedPhrase(for: number)
 
-        // 1回目の読み上げ（決定チャイム音の余韻の直後に発声）
+        // 決定チャイム音と重なって聞き取りづらくなるのを防ぐため preUtteranceDelay を設け、聞き逃し防止のため2回繰り返す
         let firstUtterance = makeUtterance(text: "\(phrase)！", rate: 0.50, postDelay: 0.35)
         firstUtterance.preUtteranceDelay = 0.35
-        // 2回目の復唱
         let secondUtterance = makeUtterance(text: "\(phrase)！", rate: 0.48, postDelay: 0.40)
 
         synthesizer.speak(firstUtterance)
         synthesizer.speak(secondUtterance)
 
-        // 出目が5個以上出た後、40%の確率で司会アシスト（合いの手）を追加
         if totalDrawnCount >= 5 && Double.random(in: 0..<1) < 0.40 {
             if let interjection = interjectionPhrases.randomElement() {
                 let assistUtterance = makeUtterance(text: interjection, rate: 0.50, pitch: 1.08, postDelay: 0.2)
@@ -69,7 +84,6 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         return nil
     }
 
-    /// 参加者からのリーチ・ビンゴ通知を受信した際の優先実況アナウンス
     func speakPlayerStatus(playerName: String, status: PlayerToHostPayload.PlayerStatus) {
         let announcement: String
         switch status {
@@ -85,7 +99,7 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         synthesizer.speak(utterance)
     }
 
-    /// これまでの出目履歴をゆっくり一括読み上げ（参加者がカードを探しやすいよう rate = 0.32 ＆ 1.3秒間隔）
+    /// 途中参加者や聞き逃した参加者が手元のカードを探しやすいよう、通常より低い rate (0.32) と十分な間隔 (1.3秒) で読み上げる
     func speakHistory(_ drawnNumbers: [Int]) {
         guard !drawnNumbers.isEmpty else { return }
         stopSpeaking()
@@ -105,7 +119,6 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         synthesizer.speak(outroUtterance)
     }
 
-    /// 音声読み上げを即座に停止
     func stopSpeaking() {
         if synthesizer.isSpeaking {
             synthesizer.stopSpeaking(at: .immediate)

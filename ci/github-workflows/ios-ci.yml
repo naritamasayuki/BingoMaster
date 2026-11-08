@@ -1,0 +1,49 @@
+name: iOS 自動テスト＆静的解析 (SwiftLint & Unit Tests)
+
+on:
+  push:
+    branches: [ "main", "develop", "feature/**", "fix/**" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    name: SwiftLint 静的解析 & Xcode ユニットテスト
+    runs-on: macos-14
+
+    steps:
+      - name: リポジトリのチェックアウト
+        uses: actions/checkout@v4
+
+      - name: SwiftLint による静的解析（警告ゼロの検証）
+        run: |
+          if ! command -v swiftlint &> /dev/null; then
+            brew install swiftlint
+          fi
+          swiftlint lint --strict
+
+      - name: Xcode バージョンの確認
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+
+      - name: iOS シミュレータでのビルドおよびユニットテスト実行
+        run: |
+          DESTINATION=$(xcrun simctl list devices available | grep -E "iPhone 15|iPhone 16" | head -n 1 | sed -E 's/.*\(([0-9A-F-]+)\).*/id=\1/')
+          if [ -z "$DESTINATION" ]; then
+            DESTINATION="platform=iOS Simulator,OS=latest"
+          else
+            DESTINATION="platform=iOS Simulator,$DESTINATION"
+          fi
+          echo "テスト実行先シミュレータ: $DESTINATION"
+          xcodebuild test \
+            -project BingoMaster.xcodeproj \
+            -scheme BingoMaster \
+            -destination "$DESTINATION" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""

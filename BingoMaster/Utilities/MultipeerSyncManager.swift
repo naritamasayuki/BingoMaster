@@ -2,9 +2,38 @@ import Foundation
 import MultipeerConnectivity
 import UIKit
 
+/// 近距離P2P通信（MultipeerConnectivity）の抽象プロトコル。
+/// 実機の無線通信を介さずに HostViewModel / PlayerViewModel 間のメッセージ同期・不正防止ロジックを
+/// ユニットテストで検証できるようにするため分離している。
 @MainActor
-final class MultipeerSyncManager: NSObject, ObservableObject {
+protocol BingoSyncManaging: AnyObject {
+    var connectedPeerNames: [String] { get }
+    var isActive: Bool { get }
+
+    var onPeerConnectedToHost: ((MCPeerID) -> Void)? { get set }
+    var onPeerConnectedToPlayer: ((MCPeerID) -> Void)? { get set }
+    var onReceivePlayerPayload: ((PlayerToHostPayload) -> Void)? { get set }
+    var onReceiveHostPayload: ((HostToPlayerPayload) -> Void)? { get set }
+
+    func startHosting()
+    func startBrowsing()
+    func stop()
+    func sendHostPayload(_ payload: HostToPlayerPayload, to targetPeers: [MCPeerID]?)
+    func sendPlayerPayload(_ payload: PlayerToHostPayload)
+}
+
+extension BingoSyncManaging {
+    func sendHostPayload(_ payload: HostToPlayerPayload) {
+        sendHostPayload(payload, to: nil)
+    }
+}
+
+@MainActor
+final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging {
     static let serviceType = "bingomaster-p2p"
+
+    /// 不正に肥大化したペイロードによるメモリ圧迫を防ぐための受信サイズ上限（64KB）
+    private static let maxPayloadByteCount = 65_536
 
     enum Role {
         case none
@@ -16,16 +45,9 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
     @Published private(set) var connectedPeerNames: [String] = []
     @Published private(set) var isActive: Bool = false
 
-    /// 司会側：新しい参加者Peerが .connected になった瞬間に呼ばれるコールバック（全出目の即時同期用）
     var onPeerConnectedToHost: ((MCPeerID) -> Void)?
-
-    /// 参加側：司会者Peerと .connected になった瞬間に呼ばれるコールバック（全出目の要求用）
     var onPeerConnectedToPlayer: ((MCPeerID) -> Void)?
-
-    /// 司会側：参加者から PlayerToHostPayload を受信した際のコールバック
     var onReceivePlayerPayload: ((PlayerToHostPayload) -> Void)?
-
-    /// 参加側：司会者から HostToPlayerPayload を受信した際のコールバック
     var onReceiveHostPayload: ((HostToPlayerPayload) -> Void)?
 
     private let myPeerID: MCPeerID
@@ -35,18 +57,19 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
 
     override init() {
         let deviceName = UIDevice.current.name
-        self.myPeerID = MCPeerID(displayName: deviceName)
+        let sanitizedName = deviceName.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.myPeerID = MCPeerID(displayName: sanitizedName.isEmpty ? "iPhone" : sanitizedName)
         super.init()
     }
 
     // MARK: - Session Control
 
-    /// 司会者（Host / Advertiser）としてP2P待機を開始
     func startHosting() {
         stop()
         currentRole = .host
 
-        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .none)
+        // 通信経路の盗聴・改ざんリスクを低減しつつ、多様なiOS端末間で接続性を維持するため .optional を採用
+        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .optional)
         newSession.delegate = self
         self.session = newSession
 
@@ -59,14 +82,14 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
         newAdvertiser.startAdvertisingPeer()
         self.advertiser = newAdvertiser
         self.isActive = true
+        BingoLogger.logInfo(BingoLogger.sync, message: "司会者（Host）としてP2Pアドバタイズを開始しました")
     }
 
-    /// 参加者（Player / Browser）として司会者の探索・自動接続を開始
     func startBrowsing() {
         stop()
         currentRole = .player
 
-        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .none)
+        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .optional)
         newSession.delegate = self
         self.session = newSession
 
@@ -78,9 +101,9 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
         newBrowser.startBrowsingForPeers()
         self.browser = newBrowser
         self.isActive = true
+        BingoLogger.logInfo(BingoLogger.sync, message: "参加者（Player）としてP2Pブラウジングを開始しました")
     }
 
-    /// 通信・探索を停止してセッションを破棄
     func stop() {
         advertiser?.stopAdvertisingPeer()
         advertiser?.delegate = nil
@@ -101,7 +124,6 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
 
     // MARK: - Send Payloads
 
-    /// 司会者 ➔ 全参加者（または特定Peer）へ HostToPlayerPayload を送信
     func sendHostPayload(_ payload: HostToPlayerPayload, to targetPeers: [MCPeerID]? = nil) {
         guard let session = session else { return }
         let peers = targetPeers ?? session.connectedPeers
@@ -111,11 +133,14 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
             let data = try JSONEncoder().encode(payload)
             try session.send(data, toPeers: peers, with: .reliable)
         } catch {
-            // 送信エラー時は次回の同期でリカバリ
+            BingoLogger.logError(
+                BingoLogger.sync,
+                context: "司会者ペイロードのP2P送信に失敗しました (対象Peer数: \(peers.count), action: \(payload.action.rawValue))",
+                error: error
+            )
         }
     }
 
-    /// 参加者 ➔ 司会者へ PlayerToHostPayload を送信
     func sendPlayerPayload(_ payload: PlayerToHostPayload) {
         guard let session = session, !session.connectedPeers.isEmpty else { return }
 
@@ -123,7 +148,11 @@ final class MultipeerSyncManager: NSObject, ObservableObject {
             let data = try JSONEncoder().encode(payload)
             try session.send(data, toPeers: session.connectedPeers, with: .reliable)
         } catch {
-            // 送信エラー時は無視
+            BingoLogger.logError(
+                BingoLogger.sync,
+                context: "参加者ペイロードのP2P送信に失敗しました (playerName: \(payload.playerName))",
+                error: error
+            )
         }
     }
 
@@ -141,26 +170,48 @@ extension MultipeerSyncManager: MCSessionDelegate {
     nonisolated func session(_ session: MCSession, peer peerID: MCPeerID, didChange state: MCSessionState) {
         Task { @MainActor in
             self.updateConnectedPeers()
-            if state == .connected {
+            switch state {
+            case .connected:
+                BingoLogger.logInfo(BingoLogger.sync, message: "Peerと接続完了しました: \(peerID.displayName)")
                 if self.currentRole == .host {
-                    // 新しいPeerが接続された瞬間、司会側から現在の全出目を即座に送信して同期させる
+                    // 途中参加・一時切断からの復帰時に出目の取りこぼしを防ぐため、接続確立と同時に全出目を即時配信する
                     self.onPeerConnectedToHost?(peerID)
                 } else if self.currentRole == .player {
-                    // 参加側からも接続完了時に司会者へこれまでの出目同期をリクエストする
                     self.onPeerConnectedToPlayer?(peerID)
                 }
+            case .notConnected:
+                BingoLogger.logWarning(BingoLogger.sync, context: "Peerとの接続が切断されました: \(peerID.displayName)")
+            case .connecting:
+                break
+            @unknown default:
+                break
             }
         }
     }
 
     nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+        guard data.count <= Self.maxPayloadByteCount else {
+            BingoLogger.logWarning(
+                BingoLogger.sync,
+                context: "上限サイズ(\(Self.maxPayloadByteCount)B)を超える受信データを破棄しました (サイズ: \(data.count)B, from: \(peerID.displayName))"
+            )
+            return
+        }
         Task { @MainActor in
-            if self.currentRole == .player,
-               let hostPayload = try? JSONDecoder().decode(HostToPlayerPayload.self, from: data) {
-                self.onReceiveHostPayload?(hostPayload)
-            } else if self.currentRole == .host,
-                      let playerPayload = try? JSONDecoder().decode(PlayerToHostPayload.self, from: data) {
-                self.onReceivePlayerPayload?(playerPayload)
+            do {
+                if self.currentRole == .player {
+                    let hostPayload = try JSONDecoder().decode(HostToPlayerPayload.self, from: data)
+                    self.onReceiveHostPayload?(hostPayload)
+                } else if self.currentRole == .host {
+                    let playerPayload = try JSONDecoder().decode(PlayerToHostPayload.self, from: data)
+                    self.onReceivePlayerPayload?(playerPayload)
+                }
+            } catch {
+                BingoLogger.logError(
+                    BingoLogger.sync,
+                    context: "P2P受信データのデコードに失敗しました (role: \(self.currentRole), from: \(peerID.displayName))",
+                    error: error
+                )
             }
         }
     }
@@ -185,7 +236,15 @@ extension MultipeerSyncManager: MCSessionDelegate {
         fromPeer peerID: MCPeerID,
         at localURL: URL?,
         withError error: Error?
-    ) {}
+    ) {
+        if let error = error {
+            BingoLogger.logError(
+                BingoLogger.sync,
+                context: "リソース受信中にエラーが発生しました (resource: \(resourceName))",
+                error: error
+            )
+        }
+    }
 }
 
 // MARK: - MCNearbyServiceAdvertiserDelegate
@@ -197,12 +256,18 @@ extension MultipeerSyncManager: MCNearbyServiceAdvertiserDelegate {
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         Task { @MainActor in
-            // 司会側は参加者からの招待を自動的に承認する
+            // イベント会場等で大人数が手間なく参加できるよう、司会者への接続招待は自動承認する
             invitationHandler(true, self.session)
         }
     }
 
-    nonisolated func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {}
+    nonisolated func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
+        BingoLogger.logError(
+            BingoLogger.sync,
+            context: "P2Pアドバタイズ開始に失敗しました（ローカルネットワーク権限やWi-Fi/Bluetooth状態を確認してください）",
+            error: error
+        )
+    }
 }
 
 // MARK: - MCNearbyServiceBrowserDelegate
@@ -214,12 +279,19 @@ extension MultipeerSyncManager: MCNearbyServiceBrowserDelegate {
     ) {
         Task { @MainActor in
             guard let session = self.session else { return }
-            // 参加側は司会者を発見したら自動的に招待を送る
             browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
         }
     }
 
-    nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {}
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
+        BingoLogger.logWarning(BingoLogger.sync, context: "近隣Peerを見失いました: \(peerID.displayName)")
+    }
 
-    nonisolated func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {}
+    nonisolated func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
+        BingoLogger.logError(
+            BingoLogger.sync,
+            context: "P2Pブラウジング開始に失敗しました（ローカルネットワーク権限やWi-Fi/Bluetooth状態を確認してください）",
+            error: error
+        )
+    }
 }

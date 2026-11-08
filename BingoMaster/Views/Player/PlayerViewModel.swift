@@ -5,12 +5,12 @@ import UIKit
 final class PlayerViewModel: ObservableObject {
     @Published private(set) var cardCells: [BingoCardCell] = [] {
         didSet {
-            BingoStorage.savePlayerCardCells(cardCells)
+            storage.savePlayerCardCells(cardCells)
         }
     }
     @Published var isAutoPunch: Bool = false {
         didSet {
-            BingoStorage.savePlayerIsAutoPunch(isAutoPunch)
+            storage.savePlayerIsAutoPunch(isAutoPunch)
             if isAutoPunch {
                 // 途中参加後に「自動」へ切り替えた場合も、それまでの全出目番号を即座に自動で開ける
                 autoPunchAllDrawnCells()
@@ -19,14 +19,14 @@ final class PlayerViewModel: ObservableObject {
     }
 
     @Published var playerName: String
-    @Published private(set) var latestDrawnNumber: Int? = nil
+    @Published private(set) var latestDrawnNumber: Int?
     @Published private(set) var drawnNumbers: [Int] = [] {
         didSet {
-            BingoStorage.savePlayerDrawnNumbers(drawnNumbers)
+            storage.savePlayerDrawnNumbers(drawnNumbers)
         }
     }
-    @Published private(set) var currentGameSessionID: String? = nil
-    @Published private(set) var lockedHostID: String? = nil
+    @Published private(set) var currentGameSessionID: String?
+    @Published private(set) var lockedHostID: String?
     @Published private(set) var pastGameHistory: [PastPlayerGameRecord] = []
     @Published private(set) var evaluation: BingoEvaluationResult = BingoEvaluationResult(
         status: .normal,
@@ -37,17 +37,19 @@ final class PlayerViewModel: ObservableObject {
     )
 
     /// リーチ・ビンゴ達成時の祝福オーバーレイ表示フラグ
-    @Published var celebrationBannerText: String? = nil
+    @Published var celebrationBannerText: String?
     @Published var showConfetti: Bool = false
 
     /// 司会者からリセット通知を受信した際のアラート
     @Published var showHostResetNoticeAlert: Bool = false
 
     /// ゲーム進行中に不正防止ロックされた操作（モード切替・名前変更）を行った際のアラート
-    @Published var antiCheatAlertMessage: String? = nil
+    @Published var antiCheatAlertMessage: String?
 
     let playerID: String
-    let syncManager: MultipeerSyncManager
+    let syncManager: BingoSyncManaging
+    private let storage: BingoStorageProviding
+    private let audioPlayer: BingoAudioPlaying
 
     /// ゲーム進行中（1球以上抽選済み）かどうか
     var isGameInProgress: Bool {
@@ -59,30 +61,41 @@ final class PlayerViewModel: ObservableObject {
         cardCells.filter { $0.shouldHighlight }.count
     }
 
-    init(syncManager: MultipeerSyncManager) {
+    init(
+        syncManager: BingoSyncManaging,
+        storage: BingoStorageProviding = BingoStorage.shared,
+        audioPlayer: BingoAudioPlaying = BingoSoundPlayer.shared
+    ) {
         self.syncManager = syncManager
-        self.playerID = BingoStorage.loadOrCreatePlayerID()
-        self.playerName = BingoStorage.loadPlayerName() ?? UIDevice.current.name
-        self.isAutoPunch = BingoStorage.loadPlayerIsAutoPunch()
-        self.currentGameSessionID = BingoStorage.loadPlayerGameSessionID()
-        self.lockedHostID = BingoStorage.loadPlayerLockedHostID()
-        self.pastGameHistory = BingoStorage.loadPlayerPastGameHistory()
+        self.storage = storage
+        self.audioPlayer = audioPlayer
 
-        // 保存済みの出目履歴を復元
-        let savedDrawnNumbers = BingoStorage.loadPlayerDrawnNumbers()
+        self.playerID = storage.loadOrCreatePlayerID()
+        if let savedName = storage.loadPlayerName()?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !savedName.isEmpty {
+            self.playerName = savedName
+        } else {
+            self.playerName = UIDevice.current.name
+        }
+        self.isAutoPunch = storage.loadPlayerIsAutoPunch()
+        self.currentGameSessionID = storage.loadPlayerGameSessionID()
+        self.lockedHostID = storage.loadPlayerLockedHostID()
+        self.pastGameHistory = storage.loadPlayerPastGameHistory()
+
+        let savedDrawnNumbers = storage.loadPlayerDrawnNumbers()
         self.drawnNumbers = savedDrawnNumbers
         self.latestDrawnNumber = savedDrawnNumbers.last
 
-        // アプリを落としてもカードを変えられないよう、保存済みカードを必ず復元する
-        if let savedCells = BingoStorage.loadPlayerCardCells() {
+        // アプリを落としてもカードを変えられないよう、保存済みかつ有効なカードがあれば必ず復元する
+        if let savedCells = storage.loadPlayerCardCells(),
+           BingoLogic.isValidCardNumbers(savedCells.map { $0.number }) {
             self.cardCells = savedCells
         } else {
             let newCells = BingoLogic.generateCard()
             self.cardCells = newCells
-            BingoStorage.savePlayerCardCells(newCells)
+            storage.savePlayerCardCells(newCells)
         }
 
-        // 復元した出目履歴をカードに反映し、自動モードならそれまでの番号をすべて開ける
         if !savedDrawnNumbers.isEmpty {
             syncCardWithDrawnNumbers(savedDrawnNumbers)
         } else if isAutoPunch {
@@ -107,13 +120,14 @@ final class PlayerViewModel: ObservableObject {
         }
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        playerName = trimmed
-        BingoStorage.savePlayerName(trimmed)
+        // 極端に長い文字列によるUI崩れやペイロード肥大化を防ぐため最大24文字に制限する
+        let safeName = String(trimmed.prefix(24))
+        playerName = safeName
+        storage.savePlayerName(safeName)
         sendStatusToHost(status: evaluation.status, reachCount: evaluation.reachLineCount)
     }
 
     private func setupSyncCallbacks() {
-        // 途中参加・再接続時に司会者と繋がった瞬間、これまでの全出目リストを要求し、同時に自分のカードを司会者へ登録する
         syncManager.onPeerConnectedToPlayer = { [weak self] _ in
             guard let self = self else { return }
             let syncRequestPayload = PlayerToHostPayload(
@@ -129,63 +143,73 @@ final class PlayerViewModel: ObservableObject {
             self.syncManager.sendPlayerPayload(syncRequestPayload)
         }
 
-        // 司会者からの出目配信・リセット通知・ロック済みカード台帳を受信
         syncManager.onReceiveHostPayload = { [weak self] payload in
             guard let self = self else { return }
+            self.handleReceivedHostPayload(payload)
+        }
+    }
 
-            // なりすまし司会者（2台目のスマホ等による偽ホスト）からの不正な出目配信・勝手なカードリセットを遮断
-            if self.isGameInProgress,
-               let lockedHost = self.lockedHostID,
-               !lockedHost.isEmpty,
-               !payload.hostID.isEmpty,
-               lockedHost != payload.hostID {
+    /// 司会者から受信した出目配信・リセット通知・ロック済みカード台帳を検証して反映する
+    func handleReceivedHostPayload(_ payload: HostToPlayerPayload) {
+        // なりすまし司会者（2台目のスマホ等による偽ホスト）からの不正な出目配信・勝手なカードリセットを遮断
+        if isGameInProgress,
+           let lockedHost = lockedHostID,
+           !lockedHost.isEmpty,
+           !payload.hostID.isEmpty,
+           lockedHost != payload.hostID {
+            BingoLogger.logWarning(
+                BingoLogger.game,
+                context: "ロック中の司会者ID(\(lockedHost))と異なるホストID(\(payload.hostID))からのペイロードを遮断しました"
+            )
+            return
+        }
+
+        if !payload.hostID.isEmpty {
+            lockedHostID = payload.hostID
+            storage.savePlayerLockedHostID(payload.hostID)
+        }
+
+        switch payload.action {
+        case .drawNumber:
+            if let knownSessionID = currentGameSessionID,
+               !payload.gameSessionID.isEmpty,
+               knownSessionID != payload.gameSessionID,
+               payload.drawnNumbers.isEmpty {
+                resetCardFromHost(newSessionID: payload.gameSessionID)
                 return
             }
-
-            if !payload.hostID.isEmpty {
-                self.lockedHostID = payload.hostID
-                BingoStorage.savePlayerLockedHostID(payload.hostID)
+            if !payload.gameSessionID.isEmpty {
+                currentGameSessionID = payload.gameSessionID
+                storage.savePlayerGameSessionID(payload.gameSessionID)
             }
 
-            switch payload.action {
-            case .drawNumber:
-                // もし本物の司会者が別セッション（リセット後の新しいゲーム）を開始していた場合のみカードをリセット
-                if let knownSessionID = self.currentGameSessionID,
-                   !payload.gameSessionID.isEmpty,
-                   knownSessionID != payload.gameSessionID,
-                   payload.drawnNumbers.isEmpty {
-                    self.resetCardFromHost(newSessionID: payload.gameSessionID)
-                    return
+            // 司会者側に登録・ロックされている自分の5×5カードがあれば照合し、万が一異なっていれば元のカードへ強制復元する
+            let lockedNumbers = payload.lockedPlayerCards[playerID] ?? payload.lockedPlayerCards[playerName]
+            if let lockedNumbers = lockedNumbers, BingoLogic.isValidCardNumbers(lockedNumbers) {
+                let currentNumbers = cardCells.map { $0.number }
+                if currentNumbers != lockedNumbers {
+                    BingoLogger.logWarning(
+                        BingoLogger.game,
+                        context: "司会者台帳のロック済みカードとローカルカードの不一致を検出し、ロック済みカードを強制復元しました"
+                    )
+                    restoreLockedCard(from: lockedNumbers)
                 }
-                if !payload.gameSessionID.isEmpty {
-                    self.currentGameSessionID = payload.gameSessionID
-                    BingoStorage.savePlayerGameSessionID(payload.gameSessionID)
-                }
-
-                // 司会者側に登録・ロックされている自分の5×5カードがあれば照合し、万が一異なっていれば元のカードへ強制復元する
-                let lockedNumbers = payload.lockedPlayerCards[self.playerID] ?? payload.lockedPlayerCards[self.playerName]
-                if let lockedNumbers = lockedNumbers, lockedNumbers.count == 25 {
-                    let currentNumbers = self.cardCells.map { $0.number }
-                    if currentNumbers != lockedNumbers {
-                        self.restoreLockedCard(from: lockedNumbers)
-                    }
-                } else {
-                    // まだ司会者側に自分のカードが登録されていなければ即座に登録送信する
-                    self.sendStatusToHost(status: self.evaluation.status, reachCount: self.evaluation.reachLineCount)
-                }
-
-                self.applyHostDrawnNumbers(payload.drawnNumbers, latest: payload.latestNumber)
-
-            case .resetGame:
-                self.resetCardFromHost(newSessionID: payload.gameSessionID)
+            } else {
+                sendStatusToHost(status: evaluation.status, reachCount: evaluation.reachLineCount)
             }
+
+            applyHostDrawnNumbers(payload.drawnNumbers, latest: payload.latestNumber)
+
+        case .resetGame:
+            resetCardFromHost(newSessionID: payload.gameSessionID)
         }
     }
 
     /// 司会者側にロック保存されていた元の5×5カード数字配列からカードを強制復元（不正引き直し防止）
     private func restoreLockedCard(from numbers: [Int]) {
-        guard numbers.count == 25 else { return }
+        guard BingoLogic.isValidCardNumbers(numbers) else { return }
         var restored: [BingoCardCell] = []
+        restored.reserveCapacity(25)
         for (index, num) in numbers.enumerated() {
             let isFree = (index == 12 || num == 0)
             let previouslyPunched = cardCells.first(where: { $0.number == num })?.isPunched ?? false
@@ -199,17 +223,18 @@ final class PlayerViewModel: ObservableObject {
                 )
             )
         }
-        self.cardCells = restored
-        BingoStorage.savePlayerCardCells(restored)
+        cardCells = restored
+        storage.savePlayerCardCells(restored)
     }
 
     /// 司会者からの出目配列（途中参加時の全出目を含む）をカードへ反映
     func applyHostDrawnNumbers(_ numbers: [Int], latest: Int?) {
-        self.drawnNumbers = numbers
-        self.latestDrawnNumber = latest ?? numbers.last
-        BingoStorage.savePlayerDrawnNumbers(numbers)
+        let validNumbers = numbers.filter { (1...75).contains($0) }
+        drawnNumbers = validNumbers
+        latestDrawnNumber = latest ?? validNumbers.last
+        storage.savePlayerDrawnNumbers(validNumbers)
 
-        syncCardWithDrawnNumbers(numbers)
+        syncCardWithDrawnNumbers(validNumbers)
     }
 
     /// これまでの出目配列とカードの25マスを照合し、自動モード時は該当番号をすべて自動で開ける
@@ -227,17 +252,16 @@ final class PlayerViewModel: ObservableObject {
             let isNowDrawn = drawnSet.contains(cardCells[index].number)
             cardCells[index].isDrawn = isNowDrawn
 
-            // 自動穴あけモードがONなら、これまでに出た番号もすべて自動で開ける
             if isAutoPunch && isNowDrawn && !cardCells[index].isPunched {
                 cardCells[index].isPunched = true
                 didPunchAny = true
             }
         }
 
-        BingoStorage.savePlayerCardCells(cardCells)
+        storage.savePlayerCardCells(cardCells)
 
         if didPunchAny {
-            BingoSoundPlayer.shared.playPunchCell()
+            audioPlayer.playPunchCell()
         }
 
         evaluateAndNotifyIfChanged()
@@ -245,7 +269,10 @@ final class PlayerViewModel: ObservableObject {
 
     /// 手動タップモード時に参加者がマスをタップした際の処理
     func tapCell(at index: Int) {
-        guard cardCells.indices.contains(index) else { return }
+        guard cardCells.indices.contains(index) else {
+            BingoLogger.logWarning(BingoLogger.game, context: "範囲外のセルインデックス(\(index))へのタップを無視しました")
+            return
+        }
         let cell = cardCells[index]
 
         // 司会者がまだ引いていない数字（isDrawn == false）や既に開いているマスは開かない（不正・誤タップ防止）
@@ -254,10 +281,9 @@ final class PlayerViewModel: ObservableObject {
         }
 
         cardCells[index].isPunched = true
-        BingoStorage.savePlayerCardCells(cardCells)
+        storage.savePlayerCardCells(cardCells)
 
-        // 小気味よいスタンプ音と強い振動 (.heavy)
-        BingoSoundPlayer.shared.playPunchCell()
+        audioPlayer.playPunchCell()
 
         evaluateAndNotifyIfChanged()
     }
@@ -279,36 +305,35 @@ final class PlayerViewModel: ObservableObject {
         }
 
         if didPunch {
-            BingoStorage.savePlayerCardCells(cardCells)
-            BingoSoundPlayer.shared.playPunchCell()
+            storage.savePlayerCardCells(cardCells)
+            audioPlayer.playPunchCell()
             evaluateAndNotifyIfChanged()
         }
     }
 
     /// 司会者側でゲームリセットが実行された際の処理（この時のみ新しいカードが配布される＆これまでのカード履歴は自動保存される）
     private func resetCardFromHost(newSessionID: String) {
-        // リセット前のカード＆出目履歴を自動アーカイブ保存
-        BingoStorage.archivePlayerGameHistory(
+        storage.archivePlayerGameHistory(
             cardCells: cardCells,
             drawnNumbers: drawnNumbers,
             bingoLineCount: evaluation.bingoLineCount,
             reachLineCount: evaluation.reachLineCount
         )
-        pastGameHistory = BingoStorage.loadPlayerPastGameHistory()
+        pastGameHistory = storage.loadPlayerPastGameHistory()
 
         if !newSessionID.isEmpty {
             currentGameSessionID = newSessionID
-            BingoStorage.savePlayerGameSessionID(newSessionID)
+            storage.savePlayerGameSessionID(newSessionID)
         }
         drawnNumbers = []
         latestDrawnNumber = nil
-        BingoStorage.savePlayerDrawnNumbers([])
+        storage.savePlayerDrawnNumbers([])
         celebrationBannerText = nil
         showConfetti = false
 
         let freshCells = BingoLogic.generateCard()
         cardCells = freshCells
-        BingoStorage.savePlayerCardCells(freshCells)
+        storage.savePlayerCardCells(freshCells)
         evaluation = BingoLogic.evaluate(cells: freshCells)
         sendStatusToHost(status: .normal, reachCount: 0)
         showHostResetNoticeAlert = true
@@ -324,16 +349,15 @@ final class PlayerViewModel: ObservableObject {
         let didAchieveNewReach = newEvaluation.status == .reach && newEvaluation.reachLineCount > oldEvaluation.reachLineCount
 
         if didAchieveNewBingo {
-            BingoSoundPlayer.shared.playBingoEffect()
+            audioPlayer.playBingoEffect()
             celebrationBannerText = "🎊 ビンゴ達成！（\(newEvaluation.bingoLineCount)ライン）🎊"
             showConfetti = true
         } else if didAchieveNewReach {
-            BingoSoundPlayer.shared.playReachEffect()
+            audioPlayer.playReachEffect()
             celebrationBannerText = "🔥 リーチ！（\(newEvaluation.reachLineCount)ライン）🔥"
             showConfetti = false
         }
 
-        // 司会者側でのリアルタイム検算・カード確認シート用に、現在の穴あけ状態を毎回同期送信
         sendStatusToHost(status: newEvaluation.status, reachCount: newEvaluation.reachLineCount)
     }
 

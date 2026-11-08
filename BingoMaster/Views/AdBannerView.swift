@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// 画面下部に固定表示する広告バナー枠コンポーネント
-/// （将来 Google AdMob 等の SDK を導入した際も、この View 内部を UIViewRepresentable に差し替えるだけで全画面に反映されます）
+/// 画面下部に固定表示する広告バナー枠コンポーネント（標準 320×50 相当）。
+/// 開発方針に基づき、`AppConfig`（環境変数 / Info.plist）に本番IDが設定されるまでは
+/// レイアウト崩れを防ぐプレースホルダー枠を表示し、後からID設定のみで切り替えられる構造にしている。
 struct AdBannerView: View {
     var body: some View {
         VStack(spacing: 0) {
@@ -17,9 +18,14 @@ struct AdBannerView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("スポンサー広告スペース（320×50 バナー枠）")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.primary)
+                    Text(
+                        AppConfig.isAdMobConfigured
+                            ? "Google AdMob バナー広告（配信準備完了）"
+                            : "スポンサー広告スペース（320×50 バナー枠）"
+                    )
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+
                     Text("ここにバナー広告が表示されます")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -36,5 +42,7 @@ struct AdBannerView: View {
             .frame(height: 54)
             .background(Color(uiColor: .secondarySystemBackground))
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("スポンサー広告スペース")
     }
 }

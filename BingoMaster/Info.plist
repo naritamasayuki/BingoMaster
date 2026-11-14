@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AdMobBannerUnitID</key>
-	<string></string>
+	<string>ca-app-pub-4261439423960578/9866673659</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ja_JP</string>
 	<key>CFBundleDisplayName</key>
@@ -23,7 +23,14 @@
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>GADApplicationIdentifier</key>
-	<string></string>
+	<string>ca-app-pub-4261439423960578~7154869508</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBonjourServices</key>

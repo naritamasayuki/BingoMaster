@@ -65,6 +65,18 @@
             ReferencedContainer = "container:BingoMaster.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "ADMOB_APP_ID"
+            value = "ca-app-pub-4261439423960578~7154869508"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "ADMOB_BANNER_UNIT_ID"
+            value = "ca-app-pub-4261439423960578/9866673659"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

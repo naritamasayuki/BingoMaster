@@ -371,4 +371,12 @@ final class BingoMasterTests: XCTestCase {
         XCTAssertEqual(playerVM.drawnNumbers, [targetNumber1, targetNumber2], "偽ホストからのリセット要求は遮断されること")
         XCTAssertFalse(playerVM.showHostResetNoticeAlert)
     }
+
+    // MARK: 5. AppConfig AdMob Configuration Tests
+
+    func testAppConfigAdMobIdentifiersAreConfigured() {
+        XCTAssertTrue(AppConfig.isAdMobConfigured, "AdMobのアプリIDと広告ユニットIDが両方設定されていること")
+        XCTAssertEqual(AppConfig.adMobAppID, "ca-app-pub-4261439423960578~7154869508")
+        XCTAssertEqual(AppConfig.adMobBannerUnitID, "ca-app-pub-4261439423960578/9866673659")
+    }
 }

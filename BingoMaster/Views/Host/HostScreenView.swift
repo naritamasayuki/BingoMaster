@@ -6,6 +6,7 @@ struct HostScreenView: View {
     let onExitRole: () -> Void
 
     @State private var showPastHistorySheet: Bool = false
+    @State private var showBugReportSheet: Bool = false
     @State private var inspectingPlayer: PlayerToHostPayload?
 
     var body: some View {
@@ -97,6 +98,14 @@ struct HostScreenView: View {
         // 参加者の5×5カード検算・答え合わせシート
         .sheet(item: $inspectingPlayer) { player in
             playerInspectionSheetView(for: player)
+        }
+        // 不具合・ご要望の報告シート
+        .sheet(isPresented: $showBugReportSheet) {
+            BugReportSheetView(
+                roleLabel: "司会者モード（ホスト）",
+                drawnCount: viewModel.drawnNumbers.count,
+                connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
+            )
         }
     }
 
@@ -485,6 +494,23 @@ struct HostScreenView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .disabled(viewModel.isSpinning || viewModel.drawnNumbers.isEmpty)
+
+            Button {
+                showBugReportSheet = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "ladybug.fill")
+                        .foregroundStyle(.orange)
+                    Text("不具合・ご要望を報告する")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
     }
 

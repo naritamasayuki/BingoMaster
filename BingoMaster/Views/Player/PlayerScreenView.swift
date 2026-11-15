@@ -8,6 +8,7 @@ struct PlayerScreenView: View {
     @State private var draftName: String = ""
     @State private var pulseAnimation: Bool = false
     @State private var showPastHistorySheet: Bool = false
+    @State private var showBugReportSheet: Bool = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -124,6 +125,13 @@ struct PlayerScreenView: View {
         }
         .sheet(isPresented: $showPastHistorySheet) {
             playerPastHistorySheetView
+        }
+        .sheet(isPresented: $showBugReportSheet) {
+            BugReportSheetView(
+                roleLabel: "参加者モード（プレイヤー）",
+                drawnCount: viewModel.drawnNumbers.count,
+                connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
+            )
         }
     }
 
@@ -391,6 +399,23 @@ struct PlayerScreenView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
             }
+
+            Button {
+                showBugReportSheet = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "ladybug.fill")
+                        .foregroundStyle(.orange)
+                    Text("不具合・ご要望を報告する")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
     }
 

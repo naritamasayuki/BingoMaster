@@ -384,4 +384,32 @@ final class BingoMasterTests: XCTestCase {
         let privacyManifestURL = Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy")
         XCTAssertNotNil(privacyManifestURL, "App Store提出必須のPrivacyInfo.xcprivacyがバンドルに含まれていること")
     }
+
+    // MARK: 6. BugReportBuilder Tests
+
+    func testBugReportBuilderGeneratesDiagnosticsAndValidURLs() {
+        let reportText = BugReportBuilder.buildReportBody(
+            category: .bug,
+            userDescription: "ルーレット回転中に画面を切り替えた際のテスト報告",
+            roleLabel: "司会者モード（ホスト）",
+            drawnCount: 18,
+            connectedPeerCount: 4,
+            systemVersion: "17.5",
+            deviceModel: "iPhone"
+        )
+
+        XCTAssertTrue(reportText.contains("不具合・バグの報告"))
+        XCTAssertTrue(reportText.contains("ルーレット回転中に画面を切り替えた際のテスト報告"))
+        XCTAssertTrue(reportText.contains("司会者モード（ホスト）"))
+        XCTAssertTrue(reportText.contains("抽選済み 18 球"))
+        XCTAssertTrue(reportText.contains("接続ピア数 4 台"))
+
+        let mailURL = BugReportBuilder.makeMailtoURL(category: .bug, reportBody: reportText)
+        XCTAssertNotNil(mailURL)
+        XCTAssertEqual(mailURL?.scheme, "mailto")
+
+        let issueURL = BugReportBuilder.makeGitHubIssueURL(category: .bug, reportBody: reportText)
+        XCTAssertNotNil(issueURL)
+        XCTAssertEqual(issueURL?.scheme, "https")
+    }
 }

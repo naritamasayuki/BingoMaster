@@ -7,6 +7,7 @@ struct RoleSelectionView: View {
     @State private var playerViewModel: PlayerViewModel?
     @State private var didRestoreInitialRole: Bool = false
     @State private var showTermsAndPrivacySheet: Bool = false
+    @State private var showBugReportSheet: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -48,6 +49,13 @@ struct RoleSelectionView: View {
         }
         .sheet(isPresented: $showTermsAndPrivacySheet) {
             termsAndPrivacySheetView
+        }
+        .sheet(isPresented: $showBugReportSheet) {
+            BugReportSheetView(
+                roleLabel: "モード選択画面",
+                drawnCount: BingoStorage.loadHostDrawnNumbers().count,
+                connectedPeerCount: syncManager.connectedPeerNames.count
+            )
         }
     }
 
@@ -138,16 +146,35 @@ struct RoleSelectionView: View {
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 
-                    // 免責事項・プライバシーポリシー確認ボタン（App Store審査ガイドライン 5.1.1 / 5.3 対応）
-                    Button {
-                        showTermsAndPrivacySheet = true
-                    } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "info.circle")
-                            Text("ご利用規約・プライバシーポリシー・免責事項")
+                    // 免責事項・プライバシーポリシー確認 ＆ 不具合報告ボタン
+                    VStack(spacing: 12) {
+                        Button {
+                            showBugReportSheet = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "ladybug.fill")
+                                    .foregroundStyle(.orange)
+                                Text("不具合・ご要望を報告する")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.primary)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 9)
+                            .background(Color(uiColor: .secondarySystemGroupedBackground))
+                            .clipShape(Capsule())
                         }
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .buttonStyle(.plain)
+
+                        Button {
+                            showTermsAndPrivacySheet = true
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle")
+                                Text("ご利用規約・プライバシーポリシー・免責事項")
+                            }
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                        }
                     }
                     .padding(.top, 4)
                 }

@@ -27,6 +27,7 @@
 		A10000180000000000000001 /* BingoLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000001 /* BingoLogger.swift */; };
 		A10000190000000000000001 /* BingoMasterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000001 /* BingoMasterTests.swift */; };
 		A10000200000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000001 /* PrivacyInfo.xcprivacy */; };
+		A10000210000000000000001 /* BugReportSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000210000000000000001 /* BugReportSheetView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		A20000180000000000000001 /* BingoLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoLogger.swift; sourceTree = "<group>"; };
 		A20000190000000000000001 /* BingoMasterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoMasterTests.swift; sourceTree = "<group>"; };
 		A20000200000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A20000210000000000000001 /* BugReportSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReportSheetView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				A20000160000000000000001 /* AdBannerView.swift */,
+				A20000210000000000000001 /* BugReportSheetView.swift */,
 				A20000100000000000000001 /* RoleSelectionView.swift */,
 				A40000050000000000000001 /* Host */,
 				A40000060000000000000001 /* Player */,
@@ -276,6 +279,7 @@
 				A10000130000000000000001 /* PlayerScreenView.swift in Sources */,
 				A10000140000000000000001 /* PlayerViewModel.swift in Sources */,
 				A10000160000000000000001 /* AdBannerView.swift in Sources */,
+				A10000210000000000000001 /* BugReportSheetView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

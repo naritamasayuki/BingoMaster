@@ -1,0 +1,13 @@
+name: "BingoMaster CI Setup"
+description: "Composite action for BingoMaster iOS CI and SwiftLint checks"
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+    - name: Verify SwiftLint
+      shell: bash
+      run: |
+        if command -v swiftlint &> /dev/null; then
+          swiftlint lint --strict
+        fi

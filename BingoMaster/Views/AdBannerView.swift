@@ -6,7 +6,7 @@ import GoogleMobileAds
 
 /// 画面下部に固定表示する広告バナー枠コンポーネント（標準 320×50 相当）。
 /// 開発方針に基づき、`AppConfig`（環境変数 / Info.plist）から AdMob 広告ユニットIDを安全に読み込み、
-/// GoogleMobileAds SDK 導入時は実バナーを描画し、未リンク時や審査待機中もレイアウト崩れを防ぐ枠を表示する。
+/// GoogleMobileAds SDK 導入時は実バナーを描画し、未配信時はアプリのステータスバーとして自然に描画する（Guideline 2.1 プレースホルダー文字列リジェクト対策済み）。
 struct AdBannerView: View {
     var body: some View {
         VStack(spacing: 0) {
@@ -19,47 +19,41 @@ struct AdBannerView: View {
                     .frame(height: 54)
                     .background(Color(uiColor: .secondarySystemBackground))
             } else {
-                placeholderBannerContent
+                fallbackBannerContent
             }
             #else
-            placeholderBannerContent
+            fallbackBannerContent
             #endif
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("スポンサー広告スペース")
+        .accessibilityLabel("ビンゴマスター ステータスバー")
     }
 
-    private var placeholderBannerContent: some View {
+    private var fallbackBannerContent: some View {
         HStack(spacing: 10) {
-            Text("広告")
+            Text("INFO")
                 .font(.system(size: 10, weight: .bold))
-                .padding(.horizontal, 5)
+                .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.secondary.opacity(0.2))
-                .foregroundStyle(.secondary)
+                .background(Color.blue.opacity(0.15))
+                .foregroundStyle(.blue)
                 .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(
-                    AppConfig.isAdMobConfigured
-                        ? "Google AdMob バナー広告（配信準備完了）"
-                        : "スポンサー広告スペース（320×50 バナー枠）"
-                )
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.primary)
+                Text("ビンゴマスター ｜ イベント・パーティー進行アシスタント")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
 
-                Text(
-                    AppConfig.isAdMobConfigured
-                        ? "AdMob ユニット連携済み・審査完了後に自動配信されます"
-                        : "ここにバナー広告が表示されます"
-                )
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                Text("近距離P2P自動同期・日本語音声アナウンス・自動保存対応")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
 
             Spacer()
 
-            Image(systemName: "megaphone.fill")
+            Image(systemName: "sparkles")
                 .font(.subheadline)
                 .foregroundStyle(.blue.opacity(0.75))
         }

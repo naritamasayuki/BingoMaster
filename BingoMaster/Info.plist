@@ -24,6 +24,10 @@
 	<string>1</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-4261439423960578~7154869508</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.entertainment</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
@@ -47,6 +51,8 @@
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -55,6 +61,8 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>

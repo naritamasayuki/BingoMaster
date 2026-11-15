@@ -6,6 +6,7 @@ struct RoleSelectionView: View {
     @State private var hostViewModel: HostViewModel?
     @State private var playerViewModel: PlayerViewModel?
     @State private var didRestoreInitialRole: Bool = false
+    @State private var showTermsAndPrivacySheet: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -44,6 +45,9 @@ struct RoleSelectionView: View {
             if !BingoStorage.loadPlayerDrawnNumbers().isEmpty && BingoStorage.loadHostDrawnNumbers().isEmpty {
                 enterPlayerMode()
             }
+        }
+        .sheet(isPresented: $showTermsAndPrivacySheet) {
+            termsAndPrivacySheetView
         }
     }
 
@@ -133,6 +137,19 @@ struct RoleSelectionView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    // 免責事項・プライバシーポリシー確認ボタン（App Store審査ガイドライン 5.1.1 / 5.3 対応）
+                    Button {
+                        showTermsAndPrivacySheet = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle")
+                            Text("ご利用規約・プライバシーポリシー・免責事項")
+                        }
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 4)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
@@ -143,6 +160,53 @@ struct RoleSelectionView: View {
         }
         .navigationTitle("モード選択")
         .navigationBarHidden(true)
+    }
+
+    private var termsAndPrivacySheetView: some View {
+        NavigationStack {
+            List {
+                Section("1. アプリの目的と免責事項（非賭博・非懸賞の明示）") {
+                    Text("・本アプリ「ビンゴマスター」は、パーティー・懇親会・社内イベント等の会場において、司会者の番号抽選および参加者のビンゴカード管理を補助する進行用ユーティリティツールです。\n・本アプリ内で金銭（リアルマネー）を賭ける行為、オンライン賭博、またはアプリ開発者による懸賞・景品・金品の提供は一切行いません。\n・Apple Inc. は本アプリを用いたイベント、抽選、または景品のスポンサーではなく、一切の関係を有しません。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineSpacing(3)
+                }
+
+                Section("2. プライバシーとデータの取り扱い") {
+                    Text("・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われ、外部サーバーへ個人情報を送信・収集することはありません。")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineSpacing(3)
+                }
+
+                Section("3. アプリ情報") {
+                    HStack {
+                        Text("アプリ名")
+                        Spacer()
+                        Text("ビンゴマスター")
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.caption)
+
+                    HStack {
+                        Text("バージョン")
+                        Spacer()
+                        Text("1.0 (Build 1)")
+                            .foregroundStyle(.secondary)
+                    }
+                    .font(.caption)
+                }
+            }
+            .navigationTitle("規約・プライバシー・免責事項")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        showTermsAndPrivacySheet = false
+                    }
+                }
+            }
+        }
     }
 
     private func roleCardView(

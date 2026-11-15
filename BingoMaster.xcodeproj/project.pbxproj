@@ -26,6 +26,7 @@
 		A10000170000000000000001 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000170000000000000001 /* AppConfig.swift */; };
 		A10000180000000000000001 /* BingoLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000180000000000000001 /* BingoLogger.swift */; };
 		A10000190000000000000001 /* BingoMasterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000001 /* BingoMasterTests.swift */; };
+		A10000200000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000001 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +62,7 @@
 		A20000170000000000000001 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		A20000180000000000000001 /* BingoLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoLogger.swift; sourceTree = "<group>"; };
 		A20000190000000000000001 /* BingoMasterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoMasterTests.swift; sourceTree = "<group>"; };
+		A20000200000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 				A20000010000000000000001 /* BingoMasterApp.swift */,
 				A20000150000000000000001 /* Assets.xcassets */,
 				A20000000000000000000001 /* Info.plist */,
+				A20000200000000000000001 /* PrivacyInfo.xcprivacy */,
 				A40000020000000000000001 /* Models */,
 				A40000030000000000000001 /* Utilities */,
 				A40000040000000000000001 /* Views */,
@@ -245,6 +248,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000150000000000000001 /* Assets.xcassets in Resources */,
+				A10000200000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

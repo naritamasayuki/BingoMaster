@@ -372,11 +372,16 @@ final class BingoMasterTests: XCTestCase {
         XCTAssertFalse(playerVM.showHostResetNoticeAlert)
     }
 
-    // MARK: 5. AppConfig AdMob Configuration Tests
+    // MARK: 5. AppConfig AdMob & Privacy Manifest Configuration Tests
 
     func testAppConfigAdMobIdentifiersAreConfigured() {
         XCTAssertTrue(AppConfig.isAdMobConfigured, "AdMobのアプリIDと広告ユニットIDが両方設定されていること")
         XCTAssertEqual(AppConfig.adMobAppID, "ca-app-pub-4261439423960578~7154869508")
         XCTAssertEqual(AppConfig.adMobBannerUnitID, "ca-app-pub-4261439423960578/9866673659")
+    }
+
+    func testPrivacyManifestIsBundledInMainBundle() {
+        let privacyManifestURL = Bundle.main.url(forResource: "PrivacyInfo", withExtension: "xcprivacy")
+        XCTAssertNotNil(privacyManifestURL, "App Store提出必須のPrivacyInfo.xcprivacyがバンドルに含まれていること")
     }
 }

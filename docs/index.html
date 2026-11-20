@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ビンゴマスター / Bingo Master — サポート &amp; プライバシーポリシー</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1c1e21;
+      --muted: #5f6672;
+      --accent: #2563eb;
+      --border: #e5e7eb;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111827;
+        --card: #1f2937;
+        --text: #f3f4f6;
+        --muted: #9ca3af;
+        --accent: #60a5fa;
+        --border: #374151;
+      }
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "PingFang SC", "PingFang TC", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .ball {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .b { background: #2563eb; }
+    .i { background: #dc2626; }
+    .n { background: #16a34a; }
+    .g { background: #ea580c; }
+    .o { background: #9333ea; }
+    .lang-tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0 24px;
+    }
+    .lang-btn {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .lang-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    h1 { font-size: 24px; margin: 4px 0; }
+    h2 { font-size: 18px; margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    ul { padding-left: 20px; }
+    a { color: var(--accent); }
+    .hidden { display: none; }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 32px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badges">
+        <span class="ball b">B</span>
+        <span class="ball i">I</span>
+        <span class="ball n">N</span>
+        <span class="ball g">G</span>
+        <span class="ball o">O</span>
+      </div>
+      <h1>Bingo Master / ビンゴマスター</h1>
+      <div class="lang-tabs">
+        <button class="lang-btn active" onclick="setLang('ja', this)">日本語</button>
+        <button class="lang-btn" onclick="setLang('en', this)">English</button>
+        <button class="lang-btn" onclick="setLang('zh-Hans', this)">简体中文</button>
+        <button class="lang-btn" onclick="setLang('zh-Hant', this)">繁體中文</button>
+      </div>
+    </header>
+
+    <!-- 日本語 -->
+    <section id="lang-ja" class="lang-section">
+      <div class="card">
+        <h2>アプリについて・サポート</h2>
+        <p>「ビンゴマスター」は、パーティー・懇親会・社内イベントなどの会場で、インターネット接続なしに近くの端末同士でリアルタイムにビンゴを楽しめる進行用ユーティリティアプリです。</p>
+        <ul>
+          <li><strong>司会者（ホスト）モード</strong>：1〜75のルーレット抽選、多言語音声アナウンス、出目一覧ボード、参加者のリーチ/ビンゴ自動検算</li>
+          <li><strong>参加者（プレイヤー）モード</strong>：5×5デジタルカード、自動穴あけ／手動タップ切替、不正防止ロック、自動保存</li>
+          <li><strong>不具合・ご要望のお問い合わせ</strong>：<a href="https://github.com/naritamasayuki/BingoMaster/issues">GitHub Issues</a> またはアプリ内の「不具合・ご要望を報告する」からご連絡ください。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>プライバシーポリシー</h2>
+        <p>本アプリは、お客様のプライバシーを尊重し、以下の通りデータを取り扱います。</p>
+        <ul>
+          <li><strong>個人情報の非収集</strong>：本アプリが外部サーバーへ個人情報を送信・収集することはありません。</li>
+          <li><strong>端末内保存</strong>：出目履歴、カード状態、ニックネーム、不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。</li>
+          <li><strong>ローカルネットワーク通信</strong>：司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われます。</li>
+          <li><strong>免責事項</strong>：本アプリ内で金銭を賭ける行為や、開発者による懸賞・景品の提供は一切行いません。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- English -->
+    <section id="lang-en" class="lang-section hidden">
+      <div class="card">
+        <h2>About &amp; Support</h2>
+        <p><strong>Bingo Master</strong> is a party &amp; event utility app that lets a host and nearby players enjoy Bingo in real time without an internet connection.</p>
+        <ul>
+          <li><strong>Host Mode</strong>: 1–75 roulette draw, voice announcements, 1–75 master board, and automatic card verification for players.</li>
+          <li><strong>Player Mode</strong>: 5×5 digital card, auto-daub &amp; manual tap modes, anti-cheat card lock, and automatic save/restore.</li>
+          <li><strong>Support &amp; Feedback</strong>: Please contact us via <a href="https://github.com/naritamasayuki/BingoMaster/issues">GitHub Issues</a> or the in-app "Report a Bug or Request" screen.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Privacy Policy</h2>
+        <p>Bingo Master respects your privacy and handles data as follows:</p>
+        <ul>
+          <li><strong>No Personal Data Collection</strong>: The app does not transmit or collect personal data to any external server.</li>
+          <li><strong>On-Device Storage</strong>: Drawn number history, card state, nickname, and anti-cheat device IDs are stored solely on your device (UserDefaults and Keychain).</li>
+          <li><strong>Local Network Sync</strong>: Sync between host and players occurs directly between nearby devices using Apple's MultipeerConnectivity framework.</li>
+          <li><strong>Disclaimer</strong>: This app is strictly a utility tool for parties and events. It does not offer real-money gambling or prizes.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 简体中文 -->
+    <section id="lang-zh-Hans" class="lang-section hidden">
+      <div class="card">
+        <h2>应用简介与支持</h2>
+        <p><strong>宾果大师（Bingo Master）</strong>是一款适用于派对、聚会与公司活动的实用工具应用，无需互联网即可与附近设备实时同步进行宾果游戏。</p>
+        <ul>
+          <li><strong>主持人模式</strong>：1〜75转盘抽号、语音播报、号码总览板、参与者听牌/宾果自动核验。</li>
+          <li><strong>参与者模式</strong>：5×5电子宾果卡、自动标记/手动点击切换、防作弊锁定与自动保存。</li>
+          <li><strong>问题反馈与支持</strong>：请通过 <a href="https://github.com/naritamasayuki/BingoMaster/issues">GitHub Issues</a> 或应用内的「报告问题或提出建议」联系我们。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>隐私政策</h2>
+        <ul>
+          <li><strong>不收集个人信息</strong>：本应用不会向任何外部服务器发送或收集个人信息。</li>
+          <li><strong>本地存储</strong>：开奖记录、卡片状态、昵称及防作弊设备ID仅保存在您的设备本地（UserDefaults 与 Keychain）。</li>
+          <li><strong>本地网络同步</strong>：主持人与参与者之间的数据同步仅通过 Apple 近距离 P2P 通信（MultipeerConnectivity）在现场设备间直接进行。</li>
+          <li><strong>免责声明</strong>：本应用仅用于活动辅助，不涉及任何真钱赌博或抽奖奖品。</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 繁體中文 -->
+    <section id="lang-zh-Hant" class="lang-section hidden">
+      <div class="card">
+        <h2>應用程式簡介與支援</h2>
+        <p><strong>賓果大師（Bingo Master）</strong>是一款適用於派對、聚會與公司活動的實用工具應用程式，無需網際網路即可與附近裝置即時同步進行賓果遊戲。</p>
+        <ul>
+          <li><strong>主持人模式</strong>：1〜75轉盤抽號、語音播報、號碼總覽板、參與者聽牌/賓果自動核驗。</li>
+          <li><strong>參與者模式</strong>：5×5電子賓果卡、自動標記/手動點擊切換、防作弊鎖定與自動儲存。</li>
+          <li><strong>問題回報與支援</strong>：請透過 <a href="https://github.com/naritamasayuki/BingoMaster/issues">GitHub Issues</a> 或應用程式內的「回報問題或提出建議」聯絡我們。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>隱私權政策</h2>
+        <ul>
+          <li><strong>不收集個人資訊</strong>：本應用程式不會向任何外部伺服器傳送或收集個人資訊。</li>
+          <li><strong>本地儲存</strong>：開獎紀錄、卡片狀態、暱稱及防作弊裝置ID僅儲存在您的裝置本地（UserDefaults 與 Keychain）。</li>
+          <li><strong>區域網路同步</strong>：主持人與參與者之間的資料同步僅透過 Apple 近距離 P2P 通訊（MultipeerConnectivity）在現場裝置間直接進行。</li>
+          <li><strong>免責聲明</strong>：本應用程式僅用於活動輔助，不涉及任何真錢賭博或抽獎獎品。</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      &copy; 2026 Bingo Master (com.naritamasayuki.bingomaster)
+    </footer>
+  </div>
+
+  <script>
+    function setLang(lang, buttonEl) {
+      document.querySelectorAll('.lang-section').forEach(el => el.classList.add('hidden'));
+      document.getElementById('lang-' + lang).classList.remove('hidden');
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      if (buttonEl) {
+        buttonEl.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

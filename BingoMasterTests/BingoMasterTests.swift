@@ -412,4 +412,23 @@ final class BingoMasterTests: XCTestCase {
         XCTAssertNotNil(issueURL)
         XCTAssertEqual(issueURL?.scheme, "https")
     }
+
+    // MARK: 7. Localization & Voice Language Tests
+
+    func testPreferredVoiceLanguageCodeMapsSupportedLocales() {
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["ja-JP"]), "ja-JP")
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["en-US"]), "en-US")
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["zh-Hans-CN"]), "zh-CN")
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["zh-Hant-TW"]), "zh-TW")
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["zh-HK"]), "zh-TW")
+        XCTAssertEqual(BingoSpeaker.preferredVoiceLanguageCode(for: ["fr-FR"]), "en-US")
+    }
+
+    func testMainBundleIncludesSupportedLocalizations() {
+        let localizations = Set(Bundle.main.localizations)
+        XCTAssertTrue(localizations.contains("ja"))
+        XCTAssertTrue(localizations.contains("en"))
+        XCTAssertTrue(localizations.contains("zh-Hans"))
+        XCTAssertTrue(localizations.contains("zh-Hant"))
+    }
 }

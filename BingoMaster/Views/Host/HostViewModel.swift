@@ -11,17 +11,17 @@ enum SpinDurationMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .short: return "短め"
-        case .normal: return "普通"
-        case .long: return "長い"
+        case .short: return String(localized: "短め")
+        case .normal: return String(localized: "普通")
+        case .long: return String(localized: "長い")
         }
     }
 
     var descriptionText: String {
         switch self {
-        case .short: return "約2.2秒（サクサク進行）"
-        case .normal: return "約4.0秒（標準の減速演出）"
-        case .long: return "約6.5秒（ドキドキじらし演出）"
+        case .short: return String(localized: "約2.2秒（サクサク進行）")
+        case .normal: return String(localized: "約4.0秒（標準の減速演出）")
+        case .long: return String(localized: "約6.5秒（ドキドキじらし演出）")
         }
     }
 
@@ -233,11 +233,11 @@ final class HostViewModel: ObservableObject {
         switch verifiedPayload.status {
         case .bingo:
             audioPlayer.playBingoEffect()
-            showToast("🎊 \(verifiedPayload.playerName)さんがビンゴ達成です！（司会者検算OK）", isCelebration: true)
+            showToast(String(localized: "🎊 \(verifiedPayload.playerName)さんがビンゴ達成です！（司会者検算OK）"), isCelebration: true)
             speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .bingo)
         case .reach:
             audioPlayer.playReachEffect()
-            showToast("🔥 おっと、\(verifiedPayload.playerName)さんがリーチになりました〜！（\(verifiedPayload.reachLineCount)ライン）", isCelebration: false)
+            showToast(String(localized: "🔥 おっと、\(verifiedPayload.playerName)さんがリーチになりました〜！（\(verifiedPayload.reachLineCount)ライン）"), isCelebration: false)
             speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .reach)
         case .normal:
             break
@@ -250,7 +250,7 @@ final class HostViewModel: ObservableObject {
         existingPlayer: PlayerToHostPayload?
     ) -> String {
         let sanitizedIncoming = incomingName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let fallbackName = sanitizedIncoming.isEmpty ? "参加者" : sanitizedIncoming
+        let fallbackName = sanitizedIncoming.isEmpty ? String(localized: "参加者") : sanitizedIncoming
 
         if let existing = existingPlayer, !drawnNumbers.isEmpty {
             // 1球目抽選開始後は登録済みの名前で固定し、途中での名前変更によるなりすましを防止する
@@ -486,7 +486,7 @@ final class HostViewModel: ObservableObject {
             lockedPlayerCards: registeredPlayerCards
         )
         syncManager.sendHostPayload(payload)
-        showToast("📂 \(record.formattedDate) のゲーム履歴（\(record.drawnNumbers.count)球・参加者\(record.players.count)人）を復元しました", isCelebration: false)
+        showToast(String(localized: "📂 \(record.formattedDate) のゲーム履歴（\(record.drawnNumbers.count)球・参加者\(record.players.count)人）を復元しました"), isCelebration: false)
     }
 
     private func showToast(_ text: String, isCelebration: Bool) {

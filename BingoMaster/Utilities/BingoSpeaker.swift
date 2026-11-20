@@ -1,7 +1,7 @@
 import AVFoundation
 import Foundation
 
-/// 日本語音声読み上げ機能の抽象プロトコル。
+/// 多言語音声読み上げ機能の抽象プロトコル。
 /// テスト実行時に AVSpeechSynthesizer を起動せず読み上げ呼び出し履歴を検証できるようにするため定義している。
 @MainActor
 protocol BingoSpeechProviding: AnyObject {
@@ -22,13 +22,35 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
     private let synthesizer = AVSpeechSynthesizer()
 
     /// 司会者が1人で進行する際も会場が盛り上がるよう、中盤以降にランダムで挿入する合いの手フレーズ
-    private let interjectionPhrases: [String] = [
-        "リーチの人、いますか〜？",
-        "ビンゴの人、おりますか〜？",
-        "そろそろ穴が空いてきましたか〜？",
-        "お手元のカード、よく確認してくださいね〜！",
-        "まだまだチャンスはありますよ〜！"
-    ]
+    private var interjectionPhrases: [String] {
+        [
+            String(localized: "リーチの人、いますか〜？"),
+            String(localized: "ビンゴの人、おりますか〜？"),
+            String(localized: "そろそろ穴が空いてきましたか〜？"),
+            String(localized: "お手元のカード、よく確認してくださいね〜！"),
+            String(localized: "まだまだチャンスはありますよ〜！")
+        ]
+    }
+
+    /// システムの優先言語設定に応じた AVSpeechSynthesisVoice の言語コードを返す
+    nonisolated static func preferredVoiceLanguageCode(for preferredLanguages: [String] = Locale.preferredLanguages) -> String {
+        guard let firstLanguage = preferredLanguages.first?.lowercased() else {
+            return "ja-JP"
+        }
+        if firstLanguage.hasPrefix("ja") {
+            return "ja-JP"
+        }
+        if firstLanguage.hasPrefix("zh-hans") || firstLanguage.hasPrefix("zh-cn") || firstLanguage.hasPrefix("zh-sg") {
+            return "zh-CN"
+        }
+        if firstLanguage.hasPrefix("zh-hant") || firstLanguage.hasPrefix("zh-tw") || firstLanguage.hasPrefix("zh-hk") || firstLanguage.hasPrefix("zh-mo") {
+            return "zh-TW"
+        }
+        if firstLanguage.hasPrefix("zh") {
+            return "zh-CN"
+        }
+        return "en-US"
+    }
 
     override private init() {
         super.init()
@@ -52,7 +74,7 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
 
     func formattedPhrase(for number: Int) -> String {
         let column = BingoColumn.column(for: number)
-        return "\(column.rawValue)の、\(number)番"
+        return String(localized: "\(column.rawValue)の、\(number)番")
     }
 
     @discardableResult
@@ -88,9 +110,9 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         let announcement: String
         switch status {
         case .reach:
-            announcement = "おっと、\(playerName)さんがリーチになりました〜！"
+            announcement = String(localized: "おっと、\(playerName)さんがリーチになりました〜！")
         case .bingo:
-            announcement = "おめでとうございます！\(playerName)さん、ビンゴ達成です！"
+            announcement = String(localized: "おめでとうございます！\(playerName)さん、ビンゴ達成です！")
         case .normal:
             return
         }
@@ -104,18 +126,18 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         guard !drawnNumbers.isEmpty else { return }
         stopSpeaking()
 
-        let introText = "これまでの出目履歴を、ゆっくり読み上げます。全部で、\(drawnNumbers.count)個です。"
+        let introText = String(localized: "これまでの出目履歴を、ゆっくり読み上げます。全部で、\(drawnNumbers.count)個です。")
         let introUtterance = makeUtterance(text: introText, rate: 0.35, postDelay: 1.0)
         synthesizer.speak(introUtterance)
 
         for number in drawnNumbers {
             let column = BingoColumn.column(for: number)
-            let text = "\(column.rawValue)の、、\(number)番。"
+            let text = String(localized: "\(column.rawValue)の、、\(number)番。")
             let itemUtterance = makeUtterance(text: text, rate: 0.32, postDelay: 1.3)
             synthesizer.speak(itemUtterance)
         }
 
-        let outroUtterance = makeUtterance(text: "以上、\(drawnNumbers.count)個でした。", rate: 0.35, postDelay: 0.2)
+        let outroUtterance = makeUtterance(text: String(localized: "以上、\(drawnNumbers.count)個でした。"), rate: 0.35, postDelay: 0.2)
         synthesizer.speak(outroUtterance)
     }
 
@@ -133,7 +155,7 @@ final class BingoSpeaker: NSObject, ObservableObject, AVSpeechSynthesizerDelegat
         postDelay: TimeInterval = 0.2
     ) -> AVSpeechUtterance {
         let utterance = AVSpeechUtterance(string: text)
-        utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
+        utterance.voice = AVSpeechSynthesisVoice(language: Self.preferredVoiceLanguageCode())
         utterance.rate = rate
         utterance.pitchMultiplier = pitch
         utterance.postUtteranceDelay = postDelay

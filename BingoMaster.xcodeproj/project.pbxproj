@@ -28,6 +28,8 @@
 		A10000190000000000000001 /* BingoMasterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000190000000000000001 /* BingoMasterTests.swift */; };
 		A10000200000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A20000200000000000000001 /* PrivacyInfo.xcprivacy */; };
 		A10000210000000000000001 /* BugReportSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000210000000000000001 /* BugReportSheetView.swift */; };
+		A10000220000000000000001 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A20000220000000000000001 /* Localizable.xcstrings */; };
+		A10000230000000000000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A20000230000000000000001 /* InfoPlist.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -65,6 +67,8 @@
 		A20000190000000000000001 /* BingoMasterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BingoMasterTests.swift; sourceTree = "<group>"; };
 		A20000200000000000000001 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A20000210000000000000001 /* BugReportSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReportSheetView.swift; sourceTree = "<group>"; };
+		A20000220000000000000001 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		A20000230000000000000001 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +104,8 @@
 				A20000010000000000000001 /* BingoMasterApp.swift */,
 				A20000150000000000000001 /* Assets.xcassets */,
 				A20000000000000000000001 /* Info.plist */,
+				A20000230000000000000001 /* InfoPlist.xcstrings */,
+				A20000220000000000000001 /* Localizable.xcstrings */,
 				A20000200000000000000001 /* PrivacyInfo.xcprivacy */,
 				A40000020000000000000001 /* Models */,
 				A40000030000000000000001 /* Utilities */,
@@ -232,6 +238,9 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				ja,
+				en,
+				"zh-Hans",
+				"zh-Hant",
 				Base,
 			);
 			mainGroup = A40000000000000000000001;
@@ -251,6 +260,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000150000000000000001 /* Assets.xcassets in Resources */,
+				A10000230000000000000001 /* InfoPlist.xcstrings in Resources */,
+				A10000220000000000000001 /* Localizable.xcstrings in Resources */,
 				A10000200000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

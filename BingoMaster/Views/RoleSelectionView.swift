@@ -52,7 +52,7 @@ struct RoleSelectionView: View {
         }
         .sheet(isPresented: $showBugReportSheet) {
             BugReportSheetView(
-                roleLabel: "モード選択画面",
+                roleLabel: String(localized: "モード選択画面"),
                 drawnCount: BingoStorage.loadHostDrawnNumbers().count,
                 connectedPeerCount: syncManager.connectedPeerNames.count
             )
@@ -107,9 +107,9 @@ struct RoleSelectionView: View {
                         } label: {
                             roleCardView(
                                 iconName: "mic.fill",
-                                badgeText: "番号を引く・音声読み上げ",
-                                title: "司会者（ホスト）ではじめる",
-                                description: "ルーレットで1〜75の番号を抽選し、日本語ボイスで読み上げながら周囲の参加者へ出目を自動配信します。",
+                                badgeText: String(localized: "番号を引く・音声読み上げ"),
+                                title: String(localized: "司会者（ホスト）ではじめる"),
+                                description: String(localized: "ルーレットで1〜75の番号を抽選し、音声ボイスで読み上げながら周囲の参加者へ出目を自動配信します。"),
                                 gradientColors: [Color.blue, Color.indigo]
                             )
                         }
@@ -121,9 +121,9 @@ struct RoleSelectionView: View {
                         } label: {
                             roleCardView(
                                 iconName: "square.grid.3x3.fill",
-                                badgeText: "5×5デジタルカードで遊ぶ",
-                                title: "参加者（プレイヤー）ではじめる",
-                                description: "あなた専用のビンゴカードを発行し、司会者の出目とリアルタイム連動します。手動タップ・自動穴あけの両方に対応！",
+                                badgeText: String(localized: "5×5デジタルカードで遊ぶ"),
+                                title: String(localized: "参加者（プレイヤー）ではじめる"),
+                                description: String(localized: "あなた専用のビンゴカードを発行し、司会者の出目とリアルタイム連動します。手動タップ・自動穴あけの両方に対応！"),
                                 gradientColors: [Color.orange, Color.pink]
                             )
                         }

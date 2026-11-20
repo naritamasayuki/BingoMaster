@@ -102,7 +102,7 @@ struct HostScreenView: View {
         // 不具合・ご要望の報告シート
         .sheet(isPresented: $showBugReportSheet) {
             BugReportSheetView(
-                roleLabel: "司会者モード（ホスト）",
+                roleLabel: String(localized: "司会者モード（ホスト）"),
                 drawnCount: viewModel.drawnNumbers.count,
                 connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
             )
@@ -128,8 +128,8 @@ struct HostScreenView: View {
             HStack {
                 Label(
                     peerCount > 0
-                        ? "接続中: \(peerCount)人（保存済み参加者: \(savedPlayerCount)人）"
-                        : (savedPlayerCount > 0 ? "保存済み参加者: \(savedPlayerCount)人（再接続待機中）" : "参加者の接続を待機中..."),
+                        ? String(localized: "接続中: \(peerCount)人（保存済み参加者: \(savedPlayerCount)人）")
+                        : (savedPlayerCount > 0 ? String(localized: "保存済み参加者: \(savedPlayerCount)人（再接続待機中）") : String(localized: "参加者の接続を待機中...")),
                     systemImage: peerCount > 0 ? "antenna.radiowaves.left.and.right" : "person.2.fill"
                 )
                 .font(.footnote.weight(.semibold))
@@ -172,7 +172,7 @@ struct HostScreenView: View {
                             Button {
                                 inspectingPlayer = item
                             } label: {
-                                let extraNote = item.theoreticalStatus == .bingo ? "・未タップでビンゴ到達!" : (item.untappedDrawnCount > 0 ? "・未タップ\(item.untappedDrawnCount)" : "")
+                                let extraNote = item.theoreticalStatus == .bingo ? String(localized: "・未タップでビンゴ到達!") : (item.untappedDrawnCount > 0 ? String(localized: "・未タップ\(item.untappedDrawnCount)") : "")
                                 Text("🔥 リーチ: \(item.playerName) (\(item.reachLineCount)\(extraNote))")
                                     .font(.caption.weight(.bold))
                                     .padding(.horizontal, 10)
@@ -189,11 +189,11 @@ struct HostScreenView: View {
                             } label: {
                                 let extraNote: String = {
                                     if item.theoreticalStatus == .bingo {
-                                        return " (⚠️未タップでビンゴ到達)"
+                                        return String(localized: " (⚠️未タップでビンゴ到達)")
                                     } else if item.theoreticalStatus == .reach {
-                                        return " (⚠️未タップでリーチ到達)"
+                                        return String(localized: " (⚠️未タップでリーチ到達)")
                                     } else if item.untappedDrawnCount > 0 {
-                                        return " (未タップ\(item.untappedDrawnCount))"
+                                        return String(localized: " (未タップ\(item.untappedDrawnCount))")
                                     }
                                     return ""
                                 }()
@@ -534,8 +534,8 @@ struct HostScreenView: View {
                                     ForEach(record.players, id: \.playerName) { p in
                                         let labelText: String = {
                                             switch p.status {
-                                            case .bingo: return "🎊 \(p.playerName)(ビンゴ)"
-                                            case .reach: return "🔥 \(p.playerName)(リーチ\(p.reachLineCount))"
+                                            case .bingo: return String(localized: "🎊 \(p.playerName)(ビンゴ)")
+                                            case .reach: return String(localized: "🔥 \(p.playerName)(リーチ\(p.reachLineCount))")
                                             case .normal: return "👤 \(p.playerName)"
                                             }
                                         }()
@@ -554,7 +554,7 @@ struct HostScreenView: View {
                             Text(
                                 record.drawnNumbers
                                     .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
-                                    .joined(separator: "、")
+                                    .joined(separator: ", ")
                             )
                             .font(.caption)
                             .foregroundStyle(.secondary)

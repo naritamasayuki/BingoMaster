@@ -9,6 +9,15 @@ enum BugReportCategory: String, CaseIterable, Identifiable {
     case featureRequest = "機能改善のご要望・その他"
 
     var id: String { rawValue }
+
+    var localizedTitle: String {
+        switch self {
+        case .bug: return String(localized: "不具合・バグの報告")
+        case .connection: return String(localized: "P2P通信・接続のトラブル")
+        case .audioOrDisplay: return String(localized: "音声読み上げ・画面表示の不具合")
+        case .featureRequest: return String(localized: "機能改善のご要望・その他")
+        }
+    }
 }
 
 /// 不具合報告の本文および送信URLを組み立てるユーティリティ（ユニットテスト検証対応）
@@ -48,23 +57,32 @@ enum BugReportBuilder {
         let appVersion = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0"
         let buildNumber = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "1"
         let trimmedDesc = userDescription.trimmingCharacters(in: .whitespacesAndNewlines)
-        let bodyText = trimmedDesc.isEmpty ? "（詳細未入力）" : trimmedDesc
+        let bodyText = trimmedDesc.isEmpty ? String(localized: "（詳細未入力）") : trimmedDesc
         let timestamp = BingoStorage.formatJapaneseDate(Date())
 
-        return """
-        【カテゴリ】
-        \(category.rawValue)
+        let categoryHeader = String(localized: "【カテゴリ】")
+        let detailHeader = String(localized: "【発生内容・詳細】")
+        let diagnosticHeader = String(localized: "【自動取得された診断情報（※個人情報は含まれません）】")
+        let occurredAtLine = String(localized: "・発生日時: \(timestamp)")
+        let appVersionLine = String(localized: "・アプリバージョン: \(appVersion) (Build \(buildNumber))")
+        let osVersionLine = String(localized: "・iOSバージョン: iOS \(systemVersion) (\(deviceModel))")
+        let roleLine = String(localized: "・利用モード: \(roleLabel)")
+        let progressLine = String(localized: "・進行状況: 抽選済み \(drawnCount) 球 / 接続ピア数 \(connectedPeerCount) 台")
 
-        【発生内容・詳細】
+        return """
+        \(categoryHeader)
+        \(category.localizedTitle)
+
+        \(detailHeader)
         \(bodyText)
 
         ------------------------------
-        【自動取得された診断情報（※個人情報は含まれません）】
-        ・発生日時: \(timestamp)
-        ・アプリバージョン: \(appVersion) (Build \(buildNumber))
-        ・iOSバージョン: iOS \(systemVersion) (\(deviceModel))
-        ・利用モード: \(roleLabel)
-        ・進行状況: 抽選済み \(drawnCount) 球 / 接続ピア数 \(connectedPeerCount) 台
+        \(diagnosticHeader)
+        \(occurredAtLine)
+        \(appVersionLine)
+        \(osVersionLine)
+        \(roleLine)
+        \(progressLine)
         """
     }
 
@@ -73,7 +91,7 @@ enum BugReportBuilder {
         var components = URLComponents()
         components.scheme = "mailto"
         components.path = supportEmail
-        let subject = "【ビンゴマスター】\(category.rawValue)"
+        let subject = String(localized: "【ビンゴマスター】\(category.localizedTitle)")
         components.queryItems = [
             URLQueryItem(name: "subject", value: subject),
             URLQueryItem(name: "body", value: reportBody)
@@ -86,7 +104,7 @@ enum BugReportBuilder {
         guard var components = URLComponents(string: issuesBaseURLString) else {
             return nil
         }
-        let title = "[\(category.rawValue)] アプリ内からの報告"
+        let title = String(localized: "[\(category.localizedTitle)] アプリ内からの報告")
         components.queryItems = [
             URLQueryItem(name: "title", value: title),
             URLQueryItem(name: "body", value: reportBody)
@@ -127,7 +145,7 @@ struct BugReportSheetView: View {
                 Section("1. 報告の種類を選択してください") {
                     Picker("カテゴリ", selection: $selectedCategory) {
                         ForEach(BugReportCategory.allCases) { category in
-                            Text(category.rawValue).tag(category)
+                            Text(category.localizedTitle).tag(category)
                         }
                     }
                     .pickerStyle(.menu)
@@ -172,7 +190,7 @@ struct BugReportSheetView: View {
                     // 方法A: OS標準の共有シート（メール・LINE・メモ帳・AirDropなど全てのアプリに対応）
                     ShareLink(
                         item: generatedReport,
-                        subject: Text("【ビンゴマスター】\(selectedCategory.rawValue)")
+                        subject: Text("【ビンゴマスター】\(selectedCategory.localizedTitle)")
                     ) {
                         Label("共有シートで送る（メール・LINE・メモ等）", systemImage: "square.and.arrow.up.fill")
                             .font(.subheadline.weight(.bold))

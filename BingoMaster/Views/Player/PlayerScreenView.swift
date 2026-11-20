@@ -60,7 +60,7 @@ struct PlayerScreenView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     if viewModel.isGameInProgress {
-                        viewModel.antiCheatAlertMessage = "ゲーム進行中（抽選開始後）は、なりすまし司会者や不正なカードリセットを防ぐためモードを切り替えられません。司会者がゲームをリセットした後に切り替えられます。"
+                        viewModel.antiCheatAlertMessage = String(localized: "ゲーム進行中（抽選開始後）は、なりすまし司会者や不正なカードリセットを防ぐためモードを切り替えられません。司会者がゲームをリセットした後に切り替えられます。")
                     } else {
                         onExitRole()
                     }
@@ -78,14 +78,14 @@ struct PlayerScreenView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     if viewModel.isGameInProgress {
-                        viewModel.antiCheatAlertMessage = "ゲーム開始後（1球目抽選後）は、他の参加者へのなりすまし防止のためニックネームを変更できません。"
+                        viewModel.antiCheatAlertMessage = String(localized: "ゲーム開始後（1球目抽選後）は、他の参加者へのなりすまし防止のためニックネームを変更できません。")
                     } else {
                         draftName = viewModel.playerName
                         isEditingName = true
                     }
                 } label: {
                     Label(
-                        viewModel.isGameInProgress ? "名前固定中" : "名前変更",
+                        viewModel.isGameInProgress ? String(localized: "名前固定中") : String(localized: "名前変更"),
                         systemImage: viewModel.isGameInProgress ? "lock.circle" : "person.crop.circle"
                     )
                 }
@@ -128,7 +128,7 @@ struct PlayerScreenView: View {
         }
         .sheet(isPresented: $showBugReportSheet) {
             BugReportSheetView(
-                roleLabel: "参加者モード（プレイヤー）",
+                roleLabel: String(localized: "参加者モード（プレイヤー）"),
                 drawnCount: viewModel.drawnNumbers.count,
                 connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
             )
@@ -148,7 +148,7 @@ struct PlayerScreenView: View {
                     Circle()
                         .fill(isConnected ? Color.green : Color.orange)
                         .frame(width: 9, height: 9)
-                    Text(isConnected ? "司会者と接続中" : "司会者を探しています...")
+                    Text(isConnected ? String(localized: "司会者と接続中") : String(localized: "司会者を探しています..."))
                         .font(.caption.weight(.bold))
                         .foregroundStyle(isConnected ? Color.primary : Color.secondary)
 
@@ -169,12 +169,12 @@ struct PlayerScreenView: View {
 
                 HStack(spacing: 8) {
                     statusBadge(
-                        title: "ビンゴ",
+                        title: String(localized: "ビンゴ"),
                         count: viewModel.evaluation.bingoLineCount,
                         color: .pink
                     )
                     statusBadge(
-                        title: "リーチ",
+                        title: String(localized: "リーチ"),
                         count: viewModel.evaluation.reachLineCount,
                         color: .orange
                     )
@@ -238,7 +238,7 @@ struct PlayerScreenView: View {
                 HStack(spacing: 6) {
                     Text("⚡ 自動穴あけモード")
                         .font(.subheadline.weight(.bold))
-                    Text(viewModel.isAutoPunch ? "（自動オープン）" : "（手動タップ）")
+                    Text(viewModel.isAutoPunch ? String(localized: "（自動オープン）") : String(localized: "（手動タップ）"))
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(viewModel.isAutoPunch ? Color.blue : Color.orange)
                 }
@@ -247,8 +247,8 @@ struct PlayerScreenView: View {
 
             Text(
                 viewModel.isAutoPunch
-                    ? "司会者が引いた数字のマスを自動的に開けます（途中参加でもそれまでの番号がすべて自動で開きます）。"
-                    : "出た数字のマスが金色に光ります。自分でタップして穴を開けましょう！（自動に切り替えるとこれまでの番号も一括で開きます）"
+                    ? String(localized: "司会者が引いた数字のマスを自動的に開けます（途中参加でもそれまでの番号がすべて自動で開きます）。")
+                    : String(localized: "出た数字のマスが金色に光ります。自分でタップして穴を開けましょう！（自動に切り替えるとこれまでの番号も一括で開きます）")
             )
             .font(.caption2)
             .foregroundStyle(.secondary)
@@ -436,10 +436,10 @@ struct PlayerScreenView: View {
 
                         if !record.drawnNumbers.isEmpty {
                             Text(
-                                "出目(\(record.drawnNumbers.count)球): " +
+                                String(localized: "出目(\(record.drawnNumbers.count)球): ") +
                                 record.drawnNumbers
                                     .map { "\(BingoColumn.column(for: $0).rawValue)-\($0)" }
-                                    .joined(separator: "、")
+                                    .joined(separator: ", ")
                             )
                             .font(.caption)
                             .foregroundStyle(.secondary)

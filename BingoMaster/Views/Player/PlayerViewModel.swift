@@ -105,9 +105,9 @@ final class PlayerViewModel: ObservableObject {
         let eval = BingoLogic.evaluate(cells: self.cardCells)
         self.evaluation = eval
         if eval.status == .bingo {
-            self.celebrationBannerText = "🎊 ビンゴ達成！（\(eval.bingoLineCount)ライン）🎊"
+            self.celebrationBannerText = String(localized: "🎊 ビンゴ達成！（\(eval.bingoLineCount)ライン）🎊")
         } else if eval.status == .reach {
-            self.celebrationBannerText = "🔥 リーチ！（\(eval.reachLineCount)ライン）🔥"
+            self.celebrationBannerText = String(localized: "🔥 リーチ！（\(eval.reachLineCount)ライン）🔥")
         }
 
         setupSyncCallbacks()
@@ -115,7 +115,7 @@ final class PlayerViewModel: ObservableObject {
 
     func updatePlayerName(_ newName: String) {
         guard !isGameInProgress else {
-            antiCheatAlertMessage = "ゲーム開始後（1球目抽選後）は、他人へのなりすまし防止のためニックネームを変更できません。司会者がゲームをリセットした後に変更できます。"
+            antiCheatAlertMessage = String(localized: "ゲーム開始後（1球目抽選後）は、他人へのなりすまし防止のためニックネームを変更できません。司会者がゲームをリセットした後に変更できます。")
             return
         }
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -350,11 +350,11 @@ final class PlayerViewModel: ObservableObject {
 
         if didAchieveNewBingo {
             audioPlayer.playBingoEffect()
-            celebrationBannerText = "🎊 ビンゴ達成！（\(newEvaluation.bingoLineCount)ライン）🎊"
+            celebrationBannerText = String(localized: "🎊 ビンゴ達成！（\(newEvaluation.bingoLineCount)ライン）🎊")
             showConfetti = true
         } else if didAchieveNewReach {
             audioPlayer.playReachEffect()
-            celebrationBannerText = "🔥 リーチ！（\(newEvaluation.reachLineCount)ライン）🔥"
+            celebrationBannerText = String(localized: "🔥 リーチ！（\(newEvaluation.reachLineCount)ライン）🔥")
             showConfetti = false
         }
 

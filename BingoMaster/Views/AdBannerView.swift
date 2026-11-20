@@ -45,7 +45,7 @@ struct AdBannerView: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
 
-                Text("近距離P2P自動同期・日本語音声アナウンス・自動保存対応")
+                Text("近距離P2P自動同期・音声アナウンス・自動保存対応")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

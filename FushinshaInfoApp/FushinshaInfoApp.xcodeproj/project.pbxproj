@@ -1,0 +1,304 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		B10000010000000000000001 /* FushinshaInfoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000010000000000000001 /* FushinshaInfoApp.swift */; };
+		B10000020000000000000001 /* SafetyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000020000000000000001 /* SafetyModels.swift */; };
+		B10000030000000000000001 /* SafetyStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000030000000000000001 /* SafetyStorage.swift */; };
+		B10000040000000000000001 /* SecurityBuzzerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000040000000000000001 /* SecurityBuzzerManager.swift */; };
+		B10000050000000000000001 /* AdBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000050000000000000001 /* AdBannerView.swift */; };
+		B10000060000000000000001 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000060000000000000001 /* MainTabView.swift */; };
+		B10000070000000000000001 /* SafetyWebPortalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000070000000000000001 /* SafetyWebPortalView.swift */; };
+		B10000080000000000000001 /* SafetyMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000080000000000000001 /* SafetyMapView.swift */; };
+		B10000090000000000000001 /* SavedAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000090000000000000001 /* SavedAndHistoryView.swift */; };
+		B10000100000000000000001 /* SecurityToolsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000100000000000000001 /* SecurityToolsView.swift */; };
+		B10000110000000000000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B20000110000000000000001 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		B00000010000000000000001 /* FushinshaInfoApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FushinshaInfoApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B20000010000000000000001 /* FushinshaInfoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FushinshaInfoApp.swift; sourceTree = "<group>"; };
+		B20000020000000000000001 /* SafetyModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyModels.swift; sourceTree = "<group>"; };
+		B20000030000000000000001 /* SafetyStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyStorage.swift; sourceTree = "<group>"; };
+		B20000040000000000000001 /* SecurityBuzzerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityBuzzerManager.swift; sourceTree = "<group>"; };
+		B20000050000000000000001 /* AdBannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdBannerView.swift; sourceTree = "<group>"; };
+		B20000060000000000000001 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		B20000070000000000000001 /* SafetyWebPortalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyWebPortalView.swift; sourceTree = "<group>"; };
+		B20000080000000000000001 /* SafetyMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafetyMapView.swift; sourceTree = "<group>"; };
+		B20000090000000000000001 /* SavedAndHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedAndHistoryView.swift; sourceTree = "<group>"; };
+		B20000100000000000000001 /* SecurityToolsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityToolsView.swift; sourceTree = "<group>"; };
+		B20000110000000000000001 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		B30000010000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		B40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				B40000010000000000000001 /* FushinshaInfoApp */,
+				B40000050000000000000001 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B40000010000000000000001 /* FushinshaInfoApp */ = {
+			isa = PBXGroup;
+			children = (
+				B20000010000000000000001 /* FushinshaInfoApp.swift */,
+				B20000110000000000000001 /* Assets.xcassets */,
+				B20000000000000000000001 /* Info.plist */,
+				B40000020000000000000001 /* Models */,
+				B40000030000000000000001 /* Utilities */,
+				B40000040000000000000001 /* Views */,
+			);
+			path = FushinshaInfoApp;
+			sourceTree = "<group>";
+		};
+		B40000020000000000000001 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				B20000020000000000000001 /* SafetyModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B40000030000000000000001 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				B20000030000000000000001 /* SafetyStorage.swift */,
+				B20000040000000000000001 /* SecurityBuzzerManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		B40000040000000000000001 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B20000050000000000000001 /* AdBannerView.swift */,
+				B20000060000000000000001 /* MainTabView.swift */,
+				B20000070000000000000001 /* SafetyWebPortalView.swift */,
+				B20000080000000000000001 /* SafetyMapView.swift */,
+				B20000090000000000000001 /* SavedAndHistoryView.swift */,
+				B20000100000000000000001 /* SecurityToolsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B40000050000000000000001 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B00000010000000000000001 /* FushinshaInfoApp.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B50000010000000000000001 /* FushinshaInfoApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B60000020000000000000001 /* Build configuration list for PBXNativeTarget "FushinshaInfoApp" */;
+			buildPhases = (
+				B70000010000000000000001 /* Sources */,
+				B30000010000000000000001 /* Frameworks */,
+				B70000020000000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FushinshaInfoApp;
+			productName = FushinshaInfoApp;
+			productReference = B00000010000000000000001 /* FushinshaInfoApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B80000010000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+			};
+			buildConfigurationList = B60000010000000000000001 /* Build configuration list for PBXProject "FushinshaInfoApp" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				ja,
+				Base,
+			);
+			mainGroup = B40000000000000000000001;
+			productRefGroup = B40000050000000000000001 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B50000010000000000000001 /* FushinshaInfoApp */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B70000020000000000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000110000000000000001 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B70000010000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000010000000000000001 /* FushinshaInfoApp.swift in Sources */,
+				B10000020000000000000001 /* SafetyModels.swift in Sources */,
+				B10000030000000000000001 /* SafetyStorage.swift in Sources */,
+				B10000040000000000000001 /* SecurityBuzzerManager.swift in Sources */,
+				B10000050000000000000001 /* AdBannerView.swift in Sources */,
+				B10000060000000000000001 /* MainTabView.swift in Sources */,
+				B10000070000000000000001 /* SafetyWebPortalView.swift in Sources */,
+				B10000080000000000000001 /* SafetyMapView.swift in Sources */,
+				B10000090000000000000001 /* SavedAndHistoryView.swift in Sources */,
+				B10000100000000000000001 /* SecurityToolsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		B90000010000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		B90000020000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		B90000030000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4KR684T6KV;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FushinshaInfoApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.fushinshainfoapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B90000040000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 4KR684T6KV;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FushinshaInfoApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.fushinshainfoapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B60000010000000000000001 /* Build configuration list for PBXProject "FushinshaInfoApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B90000010000000000000001 /* Debug */,
+				B90000020000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B60000020000000000000001 /* Build configuration list for PBXNativeTarget "FushinshaInfoApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B90000030000000000000001 /* Debug */,
+				B90000040000000000000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B80000010000000000000001 /* Project object */;
+}

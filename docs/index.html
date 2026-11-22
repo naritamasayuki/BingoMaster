@@ -95,6 +95,42 @@
     ul { padding-left: 20px; }
     a { color: var(--accent); }
     .hidden { display: none; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .form-control {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    textarea.form-control { min-height: 110px; resize: vertical; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .status-msg { font-size: 13px; color: var(--accent); margin-top: 10px; min-height: 20px; }
     footer {
       text-align: center;
       color: var(--muted);
@@ -212,20 +248,167 @@
       </div>
     </section>
 
+    <!-- ご要望・バグ報告フォーム（4言語対応・アプリ連携） -->
+    <section id="feedback" class="card">
+      <h2 id="fb-title">ご要望・バグ報告フォーム</h2>
+      <p id="fb-desc" style="font-size:14px; color:var(--muted); margin-top:0;">
+        新機能のリクエストや使いにくい点、不具合などがありましたら、ぜひお気軽にお知らせください。
+      </p>
+
+      <div class="form-group">
+        <label for="fb-category" id="fb-cat-label">種別</label>
+        <select id="fb-category" class="form-control">
+          <option value="feature">新機能のご要望・改善アイデア</option>
+          <option value="bug">不具合・バグの報告</option>
+          <option value="connection">P2P通信・接続のトラブル</option>
+          <option value="other">その他のお問い合わせ</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fb-details" id="fb-details-label">内容・詳細</label>
+        <textarea id="fb-details" class="form-control" placeholder="例：〇〇機能を追加してほしい、〇〇の画面でボタンが反応しなかった 等"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-primary" id="fb-submit-btn" onclick="submitFeedback()">送信ページを開く</button>
+        <button type="button" class="btn-secondary" id="fb-copy-btn" onclick="copyFeedback()">内容をコピーする</button>
+      </div>
+      <div id="fb-status" class="status-msg" role="status"></div>
+    </section>
+
     <footer>
       &copy; 2026 Bingo Master (com.naritamasayuki.bingomaster)
     </footer>
   </div>
 
   <script>
+    // Google フォーム作成後、ここにフォームの公開URLを設定すると自動的にGoogleフォームへ送信できます
+    const GOOGLE_FORM_URL = "";
+
+    const feedbackI18n = {
+      ja: {
+        title: "ご要望・バグ報告フォーム",
+        desc: "新機能のリクエストや使いにくい点、不具合などがありましたら、ぜひお気軽にお知らせください。",
+        catLabel: "種別",
+        cats: ["新機能のご要望・改善アイデア", "不具合・バグの報告", "P2P通信・接続のトラブル", "その他のお問い合わせ"],
+        detailsLabel: "内容・詳細",
+        placeholder: "例：〇〇機能を追加してほしい、〇〇の画面でボタンが反応しなかった 等",
+        submitBtn: "送信ページを開く",
+        copyBtn: "内容をコピーする",
+        copied: "入力内容をクリップボードにコピーしました！"
+      },
+      en: {
+        title: "Feedback & Bug Report Form",
+        desc: "Have a feature request, suggestion, or bug report? We would love to hear from you!",
+        catLabel: "Category",
+        cats: ["Feature Request / Improvement", "Bug Report", "P2P Connection Issue", "Other Inquiry"],
+        detailsLabel: "Details",
+        placeholder: "e.g., Please add a dark theme, or describe steps to reproduce an issue...",
+        submitBtn: "Open Submission Page",
+        copyBtn: "Copy Feedback Text",
+        copied: "Feedback text copied to clipboard!"
+      },
+      "zh-Hans": {
+        title: "建议与问题反馈表单",
+        desc: "如果您有新功能建议、改进意见或发现任何问题，欢迎随时告知我们！",
+        catLabel: "反馈类别",
+        cats: ["新功能建议与改进", "问题与漏洞反馈", "P2P连接与同步故障", "其他咨询"],
+        detailsLabel: "详细内容",
+        placeholder: "例如：希望增加某功能，或描述遇到问题的具体操作步骤...",
+        submitBtn: "打开提交页面",
+        copyBtn: "复制反馈内容",
+        copied: "反馈内容已复制到剪贴板！"
+      },
+      "zh-Hant": {
+        title: "建議與問題回報表單",
+        desc: "如果您有新功能建議、改進意見或發現任何問題，歡迎隨時告知我們！",
+        catLabel: "回報類別",
+        cats: ["新功能建議與改進", "問題與錯誤回報", "P2P連線與同步故障", "其他諮詢"],
+        detailsLabel: "詳細內容",
+        placeholder: "例如：希望新增某功能，或描述遇到問題的具體操作步驟...",
+        submitBtn: "開啟提交頁面",
+        copyBtn: "複製回報內容",
+        copied: "回報內容已複製到剪貼簿！"
+      }
+    };
+
+    let currentLang = "ja";
+
+    function updateFeedbackLanguage(lang) {
+      const t = feedbackI18n[lang] || feedbackI18n.en;
+      document.getElementById("fb-title").textContent = t.title;
+      document.getElementById("fb-desc").textContent = t.desc;
+      document.getElementById("fb-cat-label").textContent = t.catLabel;
+      const select = document.getElementById("fb-category");
+      Array.from(select.options).forEach((opt, idx) => {
+        if (t.cats[idx]) opt.textContent = t.cats[idx];
+      });
+      document.getElementById("fb-details-label").textContent = t.detailsLabel;
+      document.getElementById("fb-details").placeholder = t.placeholder;
+      document.getElementById("fb-submit-btn").textContent = t.submitBtn;
+      document.getElementById("fb-copy-btn").textContent = t.copyBtn;
+    }
+
     function setLang(lang, buttonEl) {
+      currentLang = lang;
       document.querySelectorAll('.lang-section').forEach(el => el.classList.add('hidden'));
       document.getElementById('lang-' + lang).classList.remove('hidden');
       document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
       if (buttonEl) {
         buttonEl.classList.add('active');
+      } else {
+        const idxMap = { ja: 0, en: 1, "zh-Hans": 2, "zh-Hant": 3 };
+        const btns = document.querySelectorAll('.lang-btn');
+        if (btns[idxMap[lang]]) btns[idxMap[lang]].classList.add('active');
+      }
+      updateFeedbackLanguage(lang);
+    }
+
+    function buildFormattedText() {
+      const select = document.getElementById("fb-category");
+      const categoryLabel = select.options[select.selectedIndex].textContent;
+      const details = document.getElementById("fb-details").value.trim();
+      return `[${categoryLabel}]\n${details}`;
+    }
+
+    function submitFeedback() {
+      const text = buildFormattedText();
+      if (GOOGLE_FORM_URL) {
+        window.open(GOOGLE_FORM_URL, "_blank", "noopener");
+        return;
+      }
+      const select = document.getElementById("fb-category");
+      const title = `[${select.options[select.selectedIndex].textContent}] Bingo Master Feedback`;
+      const url = "https://github.com/naritamasayuki/BingoMaster/issues/new?title=" +
+        encodeURIComponent(title) + "&body=" + encodeURIComponent(text);
+      window.open(url, "_blank", "noopener");
+    }
+
+    function copyFeedback() {
+      const text = buildFormattedText();
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          document.getElementById("fb-status").textContent = (feedbackI18n[currentLang] || feedbackI18n.en).copied;
+        });
       }
     }
+
+    // 初期表示時の言語自動判定＆アプリからのクエリパラメータ読み込み
+    (function initPage() {
+      const navLang = (navigator.language || "ja").toLowerCase();
+      let initialLang = "en";
+      if (navLang.startsWith("ja")) initialLang = "ja";
+      else if (navLang.startsWith("zh-hant") || navLang.startsWith("zh-tw") || navLang.startsWith("zh-hk")) initialLang = "zh-Hant";
+      else if (navLang.startsWith("zh")) initialLang = "zh-Hans";
+      setLang(initialLang, null);
+
+      const params = new URLSearchParams(window.location.search);
+      const bodyParam = params.get("body") || params.get("details");
+      if (bodyParam) {
+        document.getElementById("fb-details").value = bodyParam;
+      }
+    })();
   </script>
 </body>
 </html>

@@ -411,6 +411,16 @@ final class BingoMasterTests: XCTestCase {
         let issueURL = BugReportBuilder.makeGitHubIssueURL(category: .bug, reportBody: reportText)
         XCTAssertNotNil(issueURL)
         XCTAssertEqual(issueURL?.scheme, "https")
+
+        let webFormURL = BugReportBuilder.makeWebFormURL(
+            category: .featureRequest,
+            userDescription: "新機能のリクエスト",
+            reportBody: reportText
+        )
+        XCTAssertNotNil(webFormURL)
+        XCTAssertEqual(webFormURL?.scheme, "https")
+        XCTAssertEqual(webFormURL?.fragment, "feedback")
+        XCTAssertTrue(webFormURL?.absoluteString.contains("details=") == true)
     }
 
     // MARK: 7. Localization & Voice Language Tests

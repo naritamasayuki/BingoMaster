@@ -4,6 +4,8 @@
 <dict>
 	<key>AdMobBannerUnitID</key>
 	<string>ca-app-pub-4261439423960578/9866673659</string>
+	<key>BugReportWebFormURL</key>
+	<string>https://naritamasayuki.github.io/BingoMaster/#feedback</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>ja_JP</string>
 	<key>CFBundleDisplayName</key>

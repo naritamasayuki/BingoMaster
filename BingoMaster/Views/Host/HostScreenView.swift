@@ -85,8 +85,11 @@ struct HostScreenView: View {
         } message: {
             Text("接続中の参加者全員のカードもリセットされます。（※今回の出目履歴は「過去のゲーム履歴」へ自動保存されます）")
         }
-        // リセット完了通知アラート
+        // リセット完了通知アラート（ゲーム区切りの自然なタイミングでフィードバック導線も案内）
         .alert("リセット完了", isPresented: $viewModel.showResetCompletedAlert) {
+            Button("ご要望・不具合を送る") {
+                showBugReportSheet = true
+            }
             Button("OK", role: .cancel) {}
         } message: {
             Text("今回の履歴を自動保存し、新しいゲームの準備が整いました。")

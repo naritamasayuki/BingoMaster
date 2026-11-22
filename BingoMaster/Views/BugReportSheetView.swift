@@ -1,3 +1,4 @@
+import SafariServices
 import SwiftUI
 import UIKit
 
@@ -22,6 +23,28 @@ enum BugReportCategory: String, CaseIterable, Identifiable {
 
 /// 不具合報告の本文および送信URLを組み立てるユーティリティ（ユニットテスト検証対応）
 enum BugReportBuilder {
+    /// ログイン不要のWebフィードバックフォームURL（Info.plist の BugReportWebFormURL で Google フォーム等に上書き可能）
+    static var webFormBaseURLString: String {
+        if let customURL = Bundle.main.object(forInfoDictionaryKey: "BugReportWebFormURL") as? String {
+            let trimmed = customURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return "https://naritamasayuki.github.io/BingoMaster/#feedback"
+    }
+
+    /// Google フォーム事前入力用の entry ID（任意: Info.plist の BugReportWebFormBodyEntryID で設定可能）
+    static var webFormBodyEntryID: String {
+        if let customEntry = Bundle.main.object(forInfoDictionaryKey: "BugReportWebFormBodyEntryID") as? String {
+            let trimmed = customEntry.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                return trimmed
+            }
+        }
+        return ""
+    }
+
     /// GitHub Issue 作成ページのベースURL（Info.plist の BugReportIssuesURL で上書き可能）
     static var issuesBaseURLString: String {
         if let customURL = Bundle.main.object(forInfoDictionaryKey: "BugReportIssuesURL") as? String {
@@ -99,6 +122,31 @@ enum BugReportBuilder {
         return components.url
     }
 
+    /// ログイン不要のWebフォーム用URL（診断情報・入力内容の事前入力パラメータ付き）を生成する
+    static func makeWebFormURL(
+        category: BugReportCategory,
+        userDescription: String,
+        reportBody: String
+    ) -> URL? {
+        guard var components = URLComponents(string: webFormBaseURLString) else {
+            return nil
+        }
+        var items = components.queryItems ?? []
+        if !webFormBodyEntryID.isEmpty {
+            items.append(URLQueryItem(name: "usp", value: "pp_url"))
+            items.append(URLQueryItem(name: webFormBodyEntryID, value: reportBody))
+        } else {
+            items.append(URLQueryItem(name: "category", value: category.localizedTitle))
+            let trimmedDesc = userDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedDesc.isEmpty {
+                items.append(URLQueryItem(name: "details", value: trimmedDesc))
+            }
+            items.append(URLQueryItem(name: "body", value: reportBody))
+        }
+        components.queryItems = items
+        return components.url
+    }
+
     /// GitHub Issues 新規作成用URLを生成する
     static func makeGitHubIssueURL(category: BugReportCategory, reportBody: String) -> URL? {
         guard var components = URLComponents(string: issuesBaseURLString) else {
@@ -126,6 +174,7 @@ struct BugReportSheetView: View {
     @State private var descriptionText: String = ""
     @State private var showCopiedAlert: Bool = false
     @State private var showMailFallbackAlert: Bool = false
+    @State private var activeWebFormURL: URL?
 
     private static let draftStorageKey = "BingoMaster.bugReport.draftText"
 
@@ -187,14 +236,29 @@ struct BugReportSheetView: View {
                 }
 
                 Section("4. 送信・共有方法を選択") {
+                    // 最優先: ログイン不要のWebフォーム（アプリ内ブラウザで開く）
+                    Button {
+                        UIPasteboard.general.string = generatedReport
+                        if let formURL = BugReportBuilder.makeWebFormURL(
+                            category: selectedCategory,
+                            userDescription: descriptionText,
+                            reportBody: generatedReport
+                        ) {
+                            activeWebFormURL = formURL
+                        }
+                    } label: {
+                        Label("簡単Webフォームで送る（ログイン不要）", systemImage: "safari.fill")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.blue)
+                    }
+
                     // 方法A: OS標準の共有シート（メール・LINE・メモ帳・AirDropなど全てのアプリに対応）
                     ShareLink(
                         item: generatedReport,
                         subject: Text("【ビンゴマスター】\(selectedCategory.localizedTitle)")
                     ) {
                         Label("共有シートで送る（メール・LINE・メモ等）", systemImage: "square.and.arrow.up.fill")
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(.blue)
+                            .font(.subheadline.weight(.semibold))
                     }
 
                     // 方法B: メールアプリを起動
@@ -273,6 +337,28 @@ struct BugReportSheetView: View {
             } message: {
                 Text("お使いの端末に標準メールアカウントが設定されていないため、報告内容をクリップボードに自動コピーしました。「共有シートで送る」から送信いただけます。")
             }
+            .sheet(
+                isPresented: Binding(
+                    get: { activeWebFormURL != nil },
+                    set: { if !$0 { activeWebFormURL = nil } }
+                )
+            ) {
+                if let url = activeWebFormURL {
+                    SafariWebView(url: url)
+                        .ignoresSafeArea()
+                }
+            }
         }
     }
+}
+
+/// アプリ内からログイン不要のWebフォームを開くための SFSafariViewController ラッパー
+private struct SafariWebView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }

@@ -5075,6 +5075,64 @@
           }
         }
       }
+    },
+    "簡単Webフォームで送る（ログイン不要）": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "簡単Webフォームで送る（ログイン不要）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send via Quick Web Form (No Login)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过简易网页表单提交（无需登录）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "透過簡易網頁表單提交（無需登入）"
+          }
+        }
+      }
+    },
+    "ご要望・不具合を送る": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ご要望・不具合を送る"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send Feedback / Bug Report"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交建议或问题反馈"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交建議或問題回報"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

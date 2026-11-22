@@ -407,6 +407,7 @@ final class BingoMasterTests: XCTestCase {
         let mailURL = BugReportBuilder.makeMailtoURL(category: .bug, reportBody: reportText)
         XCTAssertNotNil(mailURL)
         XCTAssertEqual(mailURL?.scheme, "mailto")
+        XCTAssertTrue(mailURL?.absoluteString.contains("doronko.narunaru@gmail.com") == true)
 
         let issueURL = BugReportBuilder.makeGitHubIssueURL(category: .bug, reportBody: reportText)
         XCTAssertNotNil(issueURL)

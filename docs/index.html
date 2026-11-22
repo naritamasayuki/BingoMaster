@@ -271,7 +271,8 @@
       </div>
 
       <div class="btn-row">
-        <button type="button" class="btn-primary" id="fb-submit-btn" onclick="submitFeedback()">送信ページを開く</button>
+        <button type="button" class="btn-primary" id="fb-mail-btn" onclick="submitViaEmail()">メールで送信する</button>
+        <button type="button" class="btn-secondary" id="fb-submit-btn" onclick="submitFeedback()">GitHubで報告する</button>
         <button type="button" class="btn-secondary" id="fb-copy-btn" onclick="copyFeedback()">内容をコピーする</button>
       </div>
       <div id="fb-status" class="status-msg" role="status"></div>
@@ -285,6 +286,7 @@
   <script>
     // Google フォーム作成後、ここにフォームの公開URLを設定すると自動的にGoogleフォームへ送信できます
     const GOOGLE_FORM_URL = "";
+    const SUPPORT_EMAIL = "doronko.narunaru@gmail.com";
 
     const feedbackI18n = {
       ja: {
@@ -294,7 +296,8 @@
         cats: ["新機能のご要望・改善アイデア", "不具合・バグの報告", "P2P通信・接続のトラブル", "その他のお問い合わせ"],
         detailsLabel: "内容・詳細",
         placeholder: "例：〇〇機能を追加してほしい、〇〇の画面でボタンが反応しなかった 等",
-        submitBtn: "送信ページを開く",
+        mailBtn: "メールで送信する",
+        submitBtn: "GitHubで報告する",
         copyBtn: "内容をコピーする",
         copied: "入力内容をクリップボードにコピーしました！"
       },
@@ -305,7 +308,8 @@
         cats: ["Feature Request / Improvement", "Bug Report", "P2P Connection Issue", "Other Inquiry"],
         detailsLabel: "Details",
         placeholder: "e.g., Please add a dark theme, or describe steps to reproduce an issue...",
-        submitBtn: "Open Submission Page",
+        mailBtn: "Send via Email",
+        submitBtn: "Report on GitHub",
         copyBtn: "Copy Feedback Text",
         copied: "Feedback text copied to clipboard!"
       },
@@ -316,7 +320,8 @@
         cats: ["新功能建议与改进", "问题与漏洞反馈", "P2P连接与同步故障", "其他咨询"],
         detailsLabel: "详细内容",
         placeholder: "例如：希望增加某功能，或描述遇到问题的具体操作步骤...",
-        submitBtn: "打开提交页面",
+        mailBtn: "通过邮件发送",
+        submitBtn: "在 GitHub 提交",
         copyBtn: "复制反馈内容",
         copied: "反馈内容已复制到剪贴板！"
       },
@@ -327,7 +332,8 @@
         cats: ["新功能建議與改進", "問題與錯誤回報", "P2P連線與同步故障", "其他諮詢"],
         detailsLabel: "詳細內容",
         placeholder: "例如：希望新增某功能，或描述遇到問題的具體操作步驟...",
-        submitBtn: "開啟提交頁面",
+        mailBtn: "透過郵件傳送",
+        submitBtn: "在 GitHub 回報",
         copyBtn: "複製回報內容",
         copied: "回報內容已複製到剪貼簿！"
       }
@@ -346,6 +352,7 @@
       });
       document.getElementById("fb-details-label").textContent = t.detailsLabel;
       document.getElementById("fb-details").placeholder = t.placeholder;
+      document.getElementById("fb-mail-btn").textContent = t.mailBtn;
       document.getElementById("fb-submit-btn").textContent = t.submitBtn;
       document.getElementById("fb-copy-btn").textContent = t.copyBtn;
     }
@@ -370,6 +377,13 @@
       const categoryLabel = select.options[select.selectedIndex].textContent;
       const details = document.getElementById("fb-details").value.trim();
       return `[${categoryLabel}]\n${details}`;
+    }
+
+    function submitViaEmail() {
+      const text = buildFormattedText();
+      const select = document.getElementById("fb-category");
+      const subject = `【ビンゴマスター】${select.options[select.selectedIndex].textContent}`;
+      window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
     }
 
     function submitFeedback() {

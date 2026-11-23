@@ -5133,6 +5133,470 @@
           }
         }
       }
+    },
+    "PR": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        }
+      }
+    },
+    "ビンゴ景品・パーティーグッズを探す": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビンゴ景品・パーティーグッズを探す"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shop Bingo Prizes & Party Goods"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选购宾果奖品与派对用品"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選購賓果獎品與派對用品"
+          }
+        }
+      }
+    },
+    "景品セット・紙カード・スピーカー等を Amazon でチェック": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "景品セット・紙カード・スピーカー等を Amazon でチェック"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check prize sets, paper cards, speakers & more on Amazon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Amazon 查看奖品套装、纸质卡片、音箱等"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Amazon 查看獎品套裝、紙本卡片、喇叭等"
+          }
+        }
+      }
+    },
+    "おすすめビンゴ・パーティーグッズ（Amazon）": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "おすすめビンゴ・パーティーグッズ（Amazon）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommended Bingo & Party Goods (Amazon)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐宾果与派对用品（Amazon）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推薦賓果與派對用品（Amazon）"
+          }
+        }
+      }
+    },
+    "ビンゴ関連グッズ（PR）": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビンゴ関連グッズ（PR）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bingo & Party Goods (PR)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宾果相关用品（PR）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "賓果相關用品（PR）"
+          }
+        }
+      }
+    },
+    "※【PR】本ページのリンクは Amazon アソシエイト・プログラム等のアフィリエイトリンクを含んでいます。商品の価格・在庫は遷移先の Amazon ページにてご確認ください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "※【PR】本ページのリンクは Amazon アソシエイト・プログラム等のアフィリエイトリンクを含んでいます。商品の価格・在庫は遷移先の Amazon ページにてご確認ください。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "*[PR] Links on this page include affiliate links such as the Amazon Associates Program. Please check prices and availability on Amazon."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "※【PR】本页包含 Amazon 联盟计划等推广链接。商品价格与库存请以跳转后的 Amazon 页面为准。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "※【PR】本頁包含 Amazon 聯盟計畫等推廣連結。商品價格與庫存請以跳轉後的 Amazon 頁面為準。"
+          }
+        }
+      }
+    },
+    "ビンゴ大会の景品セット": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビンゴ大会の景品セット"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bingo Prize Sets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "宾果活动奖品套装"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "賓果活動獎品套裝"
+          }
+        }
+      }
+    },
+    "忘年会・新年会・二次会で盛り上がる目録や定番景品": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忘年会・新年会・二次会で盛り上がる目録や定番景品"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Popular gift sets and prize packs for parties and events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适合年会、派对、聚会的热门奖品套装"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "適合尾牙、派對、聚會的熱門獎品套裝"
+          }
+        }
+      }
+    },
+    "紙のビンゴカード（補充用）": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙のビンゴカード（補充用）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paper Bingo Cards (Extra Pack)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纸质宾果卡（补充装）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "紙本賓果卡（補充裝）"
+          }
+        }
+      }
+    },
+    "スマホをお持ちでないお子様やご年配の参加者向け": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スマホをお持ちでないお子様やご年配の参加者向け"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Great for kids or guests without a smartphone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适合没有智能手机的儿童或长辈参与者"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "適合沒有智慧型手機的兒童或長輩參與者"
+          }
+        }
+      }
+    },
+    "プロジェクター・画面出力ケーブル": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロジェクター・画面出力ケーブル"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Projector & HDMI Display Adapters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投影仪与画面输出转接线"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "投影機與畫面輸出轉接線"
+          }
+        }
+      }
+    },
+    "司会者の抽選画面をテレビや大型スクリーンに投影": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "司会者の抽選画面をテレビや大型スクリーンに投影"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mirror the host's draw screen to a TV or big screen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将主持人的抽号画面投屏至电视或大屏幕"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將主持人的抽號畫面投影至電視或大螢幕"
+          }
+        }
+      }
+    },
+    "Bluetooth スピーカー": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth スピーカー"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bluetooth Party Speakers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "蓝牙派对音箱"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "藍牙派對喇叭"
+          }
+        }
+      }
+    },
+    "アプリの音声読み上げを広い会場全体にクリアに届ける": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アプリの音声読み上げを広い会場全体にクリアに届ける"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Project the app's voice announcements clearly across the venue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让应用的语音播报在宽敞的会场清晰传遍每个角落"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讓應用程式的語音播報在寬敞的會場清晰傳遍每個角落"
+          }
+        }
+      }
+    },
+    "パーティー盛り上げグッズ": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パーティー盛り上げグッズ"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party Favors & Event Supplies"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "派对氛围与活动道具"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "派對氛圍與活動道具"
+          }
+        }
+      }
+    },
+    "クラッカー・たすき・抽選箱などイベント演出アイテム": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クラッカー・たすき・抽選箱などイベント演出アイテム"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Party poppers, sashes, raffle boxes & celebration gear"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "礼花筒、绶带、抽奖箱等活跃气氛的道具"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉炮、背帶、抽獎箱等炒熱氣氛的道具"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

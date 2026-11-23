@@ -442,4 +442,34 @@ final class BingoMasterTests: XCTestCase {
         XCTAssertTrue(localizations.contains("zh-Hans"))
         XCTAssertTrue(localizations.contains("zh-Hant"))
     }
+
+    // MARK: 8. Amazon Affiliate Helper Tests
+
+    func testAmazonAffiliateHelperGeneratesSafeLocalizedURLs() throws {
+        let items = AmazonAffiliateHelper.recommendedItems
+        XCTAssertGreaterThanOrEqual(items.count, 4)
+
+        let jpLocale = Locale(identifier: "ja_JP")
+        let usLocale = Locale(identifier: "en_US")
+
+        for item in items {
+            let jpURL = try XCTUnwrap(AmazonAffiliateHelper.makeSearchURL(for: item, locale: jpLocale))
+            XCTAssertEqual(jpURL.scheme, "https")
+            XCTAssertEqual(jpURL.host, "www.amazon.co.jp")
+            XCTAssertEqual(jpURL.path, "/s")
+            let jpComponents = try XCTUnwrap(URLComponents(url: jpURL, resolvingAgainstBaseURL: false))
+            let jpTag = jpComponents.queryItems?.first(where: { $0.name == "tag" })?.value
+            let jpKeyword = jpComponents.queryItems?.first(where: { $0.name == "k" })?.value
+            XCTAssertEqual(jpTag, "shirokumacamp-22")
+            XCTAssertEqual(jpKeyword, item.searchKeywordJP)
+
+            let usURL = try XCTUnwrap(AmazonAffiliateHelper.makeSearchURL(for: item, locale: usLocale))
+            XCTAssertEqual(usURL.scheme, "https")
+            XCTAssertEqual(usURL.host, "www.amazon.com")
+            XCTAssertEqual(usURL.path, "/s")
+            let usComponents = try XCTUnwrap(URLComponents(url: usURL, resolvingAgainstBaseURL: false))
+            XCTAssertNil(usComponents.queryItems?.first(where: { $0.name == "tag" }))
+            XCTAssertEqual(usComponents.queryItems?.first(where: { $0.name == "k" })?.value, item.searchKeywordGlobal)
+        }
+    }
 }

@@ -8,6 +8,7 @@ struct RoleSelectionView: View {
     @State private var didRestoreInitialRole: Bool = false
     @State private var showTermsAndPrivacySheet: Bool = false
     @State private var showBugReportSheet: Bool = false
+    @State private var showPartyGoodsSheet: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -56,6 +57,9 @@ struct RoleSelectionView: View {
                 drawnCount: BingoStorage.loadHostDrawnNumbers().count,
                 connectedPeerCount: syncManager.connectedPeerNames.count
             )
+        }
+        .sheet(isPresented: $showPartyGoodsSheet) {
+            PartyGoodsSheetView()
         }
     }
 
@@ -145,6 +149,11 @@ struct RoleSelectionView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color(uiColor: .secondarySystemGroupedBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                    // Amazonアソシエイト関連グッズ案内（PR）
+                    PartyGoodsBannerCard {
+                        showPartyGoodsSheet = true
+                    }
 
                     // 免責事項・プライバシーポリシー確認 ＆ 不具合報告ボタン
                     VStack(spacing: 12) {

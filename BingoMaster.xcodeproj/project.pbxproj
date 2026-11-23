@@ -30,6 +30,8 @@
 		A10000210000000000000001 /* BugReportSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000210000000000000001 /* BugReportSheetView.swift */; };
 		A10000220000000000000001 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A20000220000000000000001 /* Localizable.xcstrings */; };
 		A10000230000000000000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A20000230000000000000001 /* InfoPlist.xcstrings */; };
+		A10000240000000000000001 /* AmazonAffiliateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000240000000000000001 /* AmazonAffiliateHelper.swift */; };
+		A10000250000000000000001 /* PartyGoodsRecommendationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000250000000000000001 /* PartyGoodsRecommendationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +71,8 @@
 		A20000210000000000000001 /* BugReportSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BugReportSheetView.swift; sourceTree = "<group>"; };
 		A20000220000000000000001 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A20000230000000000000001 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
+		A20000240000000000000001 /* AmazonAffiliateHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmazonAffiliateHelper.swift; sourceTree = "<group>"; };
+		A20000250000000000000001 /* PartyGoodsRecommendationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartyGoodsRecommendationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				A20000170000000000000001 /* AppConfig.swift */,
+				A20000240000000000000001 /* AmazonAffiliateHelper.swift */,
 				A20000180000000000000001 /* BingoLogger.swift */,
 				A20000050000000000000001 /* MultipeerSyncManager.swift */,
 				A20000060000000000000001 /* BingoLogic.swift */,
@@ -143,6 +148,7 @@
 			children = (
 				A20000160000000000000001 /* AdBannerView.swift */,
 				A20000210000000000000001 /* BugReportSheetView.swift */,
+				A20000250000000000000001 /* PartyGoodsRecommendationView.swift */,
 				A20000100000000000000001 /* RoleSelectionView.swift */,
 				A40000050000000000000001 /* Host */,
 				A40000060000000000000001 /* Player */,
@@ -291,6 +297,8 @@
 				A10000140000000000000001 /* PlayerViewModel.swift in Sources */,
 				A10000160000000000000001 /* AdBannerView.swift in Sources */,
 				A10000210000000000000001 /* BugReportSheetView.swift in Sources */,
+				A10000240000000000000001 /* AmazonAffiliateHelper.swift in Sources */,
+				A10000250000000000000001 /* PartyGoodsRecommendationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,6 +7,7 @@ struct HostScreenView: View {
 
     @State private var showPastHistorySheet: Bool = false
     @State private var showBugReportSheet: Bool = false
+    @State private var showPartyGoodsSheet: Bool = false
     @State private var inspectingPlayer: PlayerToHostPayload?
 
     var body: some View {
@@ -109,6 +110,10 @@ struct HostScreenView: View {
                 drawnCount: viewModel.drawnNumbers.count,
                 connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
             )
+        }
+        // ビンゴ関連グッズ案内シート（PR）
+        .sheet(isPresented: $showPartyGoodsSheet) {
+            PartyGoodsSheetView()
         }
     }
 
@@ -497,6 +502,10 @@ struct HostScreenView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .disabled(viewModel.isSpinning || viewModel.drawnNumbers.isEmpty)
+
+            PartyGoodsBannerCard {
+                showPartyGoodsSheet = true
+            }
 
             Button {
                 showBugReportSheet = true

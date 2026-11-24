@@ -472,4 +472,32 @@ final class BingoMasterTests: XCTestCase {
             XCTAssertEqual(usComponents.queryItems?.first(where: { $0.name == "k" })?.value, item.searchKeywordGlobal)
         }
     }
+
+    // MARK: 9. Host Auto-Draw & Voice Mute Tests
+
+    @MainActor
+    func testHostViewModelVoiceMutePreventsSpeechAndAutoDrawStopsOnReset() {
+        let storage = InMemoryBingoStorage()
+        let sync = MockBingoSyncManager()
+        let audio = MockBingoAudioPlayer()
+        let speaker = MockBingoSpeaker()
+        let vm = HostViewModel(syncManager: sync, storage: storage, audioPlayer: audio, speaker: speaker)
+
+        // 音声ミュート時は抽選しても読み上げが呼ばれないこと
+        vm.isVoiceAnnouncementEnabled = false
+        _ = vm.commitNextNumberDraw(forcedNumber: 12)
+        XCTAssertTrue(speaker.spokenNumbers.isEmpty)
+
+        // 音声オン時は読み上げが呼ばれること
+        vm.isVoiceAnnouncementEnabled = true
+        _ = vm.commitNextNumberDraw(forcedNumber: 24)
+        XCTAssertEqual(speaker.spokenNumbers, [24])
+
+        // 自動抽選開始後、ゲームリセットで安全に停止すること
+        vm.startAutoDraw()
+        XCTAssertTrue(vm.isAutoDrawActive)
+        vm.confirmResetGame()
+        XCTAssertFalse(vm.isAutoDrawActive)
+        XCTAssertEqual(vm.autoDrawCountdown, 0)
+    }
 }

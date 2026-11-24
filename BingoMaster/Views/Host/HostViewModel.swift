@@ -2,6 +2,19 @@ import Combine
 import Foundation
 import MultipeerConnectivity
 
+enum AutoDrawInterval: Int, CaseIterable, Identifiable {
+    case five = 5
+    case eight = 8
+    case twelve = 12
+    case fifteen = 15
+
+    var id: Int { rawValue }
+
+    var label: String {
+        String(localized: "\(rawValue)秒")
+    }
+}
+
 enum SpinDurationMode: String, CaseIterable, Identifiable {
     case short = "short"
     case normal = "normal"
@@ -68,6 +81,21 @@ final class HostViewModel: ObservableObject {
         }
     }
 
+    /// 音声読み上げのオン／オフ設定（静かな会場や司会者の生声進行時にミュート可能）
+    @Published var isVoiceAnnouncementEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(isVoiceAnnouncementEnabled, forKey: Self.voiceEnabledKey)
+            if !isVoiceAnnouncementEnabled {
+                speaker.stopSpeaking()
+            }
+        }
+    }
+
+    /// 自動抽選タイマー（Auto-Caller）の状態と設定
+    @Published private(set) var isAutoDrawActive: Bool = false
+    @Published var autoDrawInterval: AutoDrawInterval = .eight
+    @Published private(set) var autoDrawCountdown: Int = 0
+
     /// 偽司会者によるなりすましリセットや不正配信を防ぐための本物の司会者端末固有ID
     let hostID: String
 
@@ -105,8 +133,11 @@ final class HostViewModel: ObservableObject {
     private let storage: BingoStorageProviding
     private let audioPlayer: BingoAudioPlaying
 
+    private static let voiceEnabledKey = "BingoMaster.host.voiceAnnouncementEnabled"
+
     private var toastDismissTask: Task<Void, Never>?
     private var spinTask: Task<Void, Never>?
+    private var autoDrawTask: Task<Void, Never>?
 
     var remainingNumbers: [Int] {
         let drawnSet = Set(drawnNumbers)
@@ -140,6 +171,10 @@ final class HostViewModel: ObservableObject {
         if let savedModeRaw = storage.loadHostSpinDurationMode(),
            let savedMode = SpinDurationMode(rawValue: savedModeRaw) {
             self.spinDurationMode = savedMode
+        }
+
+        if UserDefaults.standard.object(forKey: Self.voiceEnabledKey) != nil {
+            self.isVoiceAnnouncementEnabled = UserDefaults.standard.bool(forKey: Self.voiceEnabledKey)
         }
 
         setupSyncCallbacks()
@@ -233,12 +268,19 @@ final class HostViewModel: ObservableObject {
         switch verifiedPayload.status {
         case .bingo:
             audioPlayer.playBingoEffect()
+            if isAutoDrawActive {
+                stopAutoDraw()
+            }
             showToast(String(localized: "🎊 \(verifiedPayload.playerName)さんがビンゴ達成です！（司会者検算OK）"), isCelebration: true)
-            speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .bingo)
+            if isVoiceAnnouncementEnabled {
+                speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .bingo)
+            }
         case .reach:
             audioPlayer.playReachEffect()
             showToast(String(localized: "🔥 おっと、\(verifiedPayload.playerName)さんがリーチになりました〜！（\(verifiedPayload.reachLineCount)ライン）"), isCelebration: false)
-            speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .reach)
+            if isVoiceAnnouncementEnabled {
+                speaker.speakPlayerStatus(playerName: verifiedPayload.playerName, status: .reach)
+            }
         case .normal:
             break
         }
@@ -386,14 +428,65 @@ final class HostViewModel: ObservableObject {
         )
         syncManager.sendHostPayload(payload)
 
-        if let assistMessage = speaker.speakDrawnNumber(
-            finalNumber,
-            totalDrawnCount: drawnNumbers.count
-        ) {
+        if isVoiceAnnouncementEnabled,
+           let assistMessage = speaker.speakDrawnNumber(
+               finalNumber,
+               totalDrawnCount: drawnNumbers.count
+           ) {
             showToast("🎤 \(assistMessage)", isCelebration: false)
         }
 
         return finalNumber
+    }
+
+    // MARK: - 自動抽選タイマー（Auto-Caller）
+
+    func toggleAutoDraw() {
+        if isAutoDrawActive {
+            stopAutoDraw()
+        } else {
+            startAutoDraw()
+        }
+    }
+
+    func startAutoDraw() {
+        guard !remainingNumbers.isEmpty else { return }
+        stopAutoDraw()
+        isAutoDrawActive = true
+
+        autoDrawTask = Task { [weak self] in
+            guard let self = self else { return }
+            while !Task.isCancelled && self.isAutoDrawActive && !self.remainingNumbers.isEmpty {
+                if !self.isSpinning {
+                    self.drawNextNumber()
+                }
+                // ルーレット演出が完了するまで待機
+                while self.isSpinning && !Task.isCancelled && self.isAutoDrawActive {
+                    try? await Task.sleep(nanoseconds: 200_000_000)
+                }
+                guard !Task.isCancelled && self.isAutoDrawActive && !self.remainingNumbers.isEmpty else {
+                    break
+                }
+                // 次の抽選までカウントダウン
+                for remaining in stride(from: self.autoDrawInterval.rawValue, through: 1, by: -1) {
+                    guard !Task.isCancelled && self.isAutoDrawActive else { break }
+                    self.autoDrawCountdown = remaining
+                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                }
+                self.autoDrawCountdown = 0
+            }
+            if !Task.isCancelled {
+                self.isAutoDrawActive = false
+                self.autoDrawCountdown = 0
+            }
+        }
+    }
+
+    func stopAutoDraw() {
+        autoDrawTask?.cancel()
+        autoDrawTask = nil
+        isAutoDrawActive = false
+        autoDrawCountdown = 0
     }
 
     func startReadingHistory() {
@@ -419,6 +512,7 @@ final class HostViewModel: ObservableObject {
 
     /// 2回目の最終確認で承認された後にリセットを実行（現在の履歴は過去ゲーム履歴へ自動保存）
     func confirmResetGame() {
+        stopAutoDraw()
         spinTask?.cancel()
         isSpinning = false
         showFirstResetConfirmationAlert = false
@@ -459,6 +553,7 @@ final class HostViewModel: ObservableObject {
     /// 過去の自動保存されたゲーム履歴（出目・参加者状態）から状態を復元する
     func restoreFromPastRecord(_ record: PastGameRecord) {
         guard !isSpinning else { return }
+        stopAutoDraw()
         speaker.stopSpeaking()
 
         drawnNumbers = record.drawnNumbers

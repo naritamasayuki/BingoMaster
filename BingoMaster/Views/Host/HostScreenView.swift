@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct HostScreenView: View {
     @ObservedObject var viewModel: HostViewModel
@@ -8,6 +9,7 @@ struct HostScreenView: View {
     @State private var showPastHistorySheet: Bool = false
     @State private var showBugReportSheet: Bool = false
     @State private var showPartyGoodsSheet: Bool = false
+    @State private var showBigScreenMode: Bool = false
     @State private var inspectingPlayer: PlayerToHostPayload?
 
     var body: some View {
@@ -59,7 +61,22 @@ struct HostScreenView: View {
                 }
                 .font(.subheadline)
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button {
+                    viewModel.isVoiceAnnouncementEnabled.toggle()
+                } label: {
+                    Image(systemName: viewModel.isVoiceAnnouncementEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                        .foregroundStyle(viewModel.isVoiceAnnouncementEnabled ? Color.blue : Color.secondary)
+                }
+                .accessibilityLabel(viewModel.isVoiceAnnouncementEnabled ? String(localized: "音声読み上げオン") : String(localized: "音声読み上げオフ"))
+
+                Button {
+                    showBigScreenMode = true
+                } label: {
+                    Image(systemName: "tv")
+                }
+                .accessibilityLabel(String(localized: "大画面プロジェクター表示"))
+
                 Button(role: .destructive) {
                     viewModel.requestResetGame()
                 } label: {
@@ -114,6 +131,20 @@ struct HostScreenView: View {
         // ビンゴ関連グッズ案内シート（PR）
         .sheet(isPresented: $showPartyGoodsSheet) {
             PartyGoodsSheetView()
+        }
+        // 大画面プロジェクター表示モード（AirPlay / HDMI投影向け）
+        .fullScreenCover(isPresented: $showBigScreenMode) {
+            HostBigScreenView(viewModel: viewModel) {
+                showBigScreenMode = false
+            }
+        }
+        // イベント進行中に画面が自動スリープしないように制御
+        .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
+            viewModel.stopAutoDraw()
         }
     }
 
@@ -339,6 +370,43 @@ struct HostScreenView: View {
                 .shadow(color: viewModel.canDrawNext ? Color.blue.opacity(0.3) : .clear, radius: 8, y: 4)
             }
             .disabled(!viewModel.canDrawNext)
+
+            // 自動抽選タイマー（Auto-Caller）コントロール
+            HStack(spacing: 10) {
+                Button {
+                    viewModel.toggleAutoDraw()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: viewModel.isAutoDrawActive ? "pause.circle.fill" : "play.circle.fill")
+                        if viewModel.isAutoDrawActive {
+                            if viewModel.autoDrawCountdown > 0 {
+                                Text("自動抽選中（あと\(viewModel.autoDrawCountdown)秒）")
+                            } else {
+                                Text("自動抽選を停止")
+                            }
+                        } else {
+                            Text("自動抽選を開始")
+                        }
+                    }
+                    .font(.caption.weight(.bold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(viewModel.isAutoDrawActive ? Color.orange.opacity(0.18) : Color.green.opacity(0.15))
+                    .foregroundStyle(viewModel.isAutoDrawActive ? Color.orange : Color.green)
+                    .clipShape(Capsule())
+                }
+                .disabled(viewModel.remainingNumbers.isEmpty)
+
+                Spacer()
+
+                Picker("間隔", selection: $viewModel.autoDrawInterval) {
+                    ForEach(AutoDrawInterval.allCases) { interval in
+                        Text(interval.label).tag(interval)
+                    }
+                }
+                .pickerStyle(.menu)
+                .font(.caption.weight(.semibold))
+            }
         }
         .padding(18)
         .background(Color(uiColor: .secondarySystemGroupedBackground))
@@ -769,5 +837,191 @@ struct HostScreenView: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .shadow(color: Color.black.opacity(0.2), radius: 8, y: 4)
+    }
+}
+
+// MARK: - 大画面プロジェクター／TV投影向けフルスクリーン表示モード
+private struct HostBigScreenView: View {
+    @ObservedObject var viewModel: HostViewModel
+    let onClose: () -> Void
+
+    var body: some View {
+        let currentNumber = viewModel.displayNumber
+        let column = currentNumber.map { BingoColumn.column(for: $0) }
+        let ballColor = column?.color ?? Color.gray
+        let drawnSet = Set(viewModel.drawnNumbers)
+
+        ZStack {
+            LinearGradient(
+                colors: [Color(red: 0.06, green: 0.09, blue: 0.18), Color.black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                // 上部操作バー
+                HStack {
+                    Text("ビンゴマスター")
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(.white.opacity(0.9))
+
+                    Text("残り \(viewModel.remainingNumbers.count)/75")
+                        .font(.caption.weight(.bold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Color.white.opacity(0.14))
+                        .foregroundStyle(.white)
+                        .clipShape(Capsule())
+
+                    Spacer()
+
+                    Button {
+                        viewModel.isVoiceAnnouncementEnabled.toggle()
+                    } label: {
+                        Image(systemName: viewModel.isVoiceAnnouncementEnabled ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                            .font(.title3)
+                            .foregroundStyle(viewModel.isVoiceAnnouncementEnabled ? .cyan : .gray)
+                            .padding(8)
+                    }
+
+                    Button {
+                        onClose()
+                    } label: {
+                        Label("閉じる", systemImage: "xmark.circle.fill")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.white.opacity(0.18))
+                            .clipShape(Capsule())
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
+
+                // 特大ビンゴボール
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [ballColor.opacity(0.85), ballColor],
+                                center: .topLeading,
+                                startRadius: 16,
+                                endRadius: 160
+                            )
+                        )
+                        .frame(width: 210, height: 210)
+                        .shadow(color: ballColor.opacity(0.6), radius: 22)
+
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.8), lineWidth: 6)
+                        .frame(width: 196, height: 196)
+
+                    if let number = currentNumber, let col = column {
+                        VStack(spacing: 0) {
+                            Text(col.rawValue)
+                                .font(.title.weight(.black))
+                                .foregroundStyle(.white.opacity(0.95))
+                            Text("\(number)")
+                                .font(.system(size: 88, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .contentTransition(.numericText())
+                        }
+                    } else {
+                        Text("抽選前")
+                            .font(.title2.weight(.black))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .scaleEffect(viewModel.isSpinning ? 1.06 : 1.0)
+                .animation(.easeInOut(duration: 0.15), value: viewModel.displayNumber)
+
+                // 最近の出目（直近6球）
+                if !viewModel.drawnNumbers.isEmpty {
+                    HStack(spacing: 8) {
+                        ForEach(Array(viewModel.drawnNumbers.reversed().prefix(6).enumerated()), id: \.offset) { idx, num in
+                            let col = BingoColumn.column(for: num)
+                            Text("\(col.rawValue)-\(num)")
+                                .font(.subheadline.weight(.black))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(idx == 0 ? col.color : Color.white.opacity(0.14))
+                                .foregroundStyle(.white)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+
+                // 1〜75 ボード（高コントラスト）
+                VStack(spacing: 5) {
+                    ForEach(BingoColumn.allCases) { col in
+                        HStack(spacing: 5) {
+                            Text(col.rawValue)
+                                .font(.subheadline.weight(.black))
+                                .foregroundStyle(.white)
+                                .frame(width: 28, height: 32)
+                                .background(col.color)
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+                            ForEach(Array(col.numberRange), id: \.self) { num in
+                                let isDrawn = drawnSet.contains(num)
+                                let isLatest = viewModel.drawnNumbers.last == num
+                                Text("\(num)")
+                                    .font(.system(size: 11, weight: isDrawn ? .black : .medium))
+                                    .frame(maxWidth: .infinity, minHeight: 28)
+                                    .background(isDrawn ? col.color : Color.white.opacity(0.08))
+                                    .foregroundStyle(isDrawn ? .white : .white.opacity(0.35))
+                                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                                            .strokeBorder(isLatest ? Color.yellow : Color.clear, lineWidth: 2)
+                                    )
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 14)
+
+                Spacer(minLength: 4)
+
+                // 下部操作ボタン（手動抽選 & 自動抽選）
+                HStack(spacing: 12) {
+                    Button {
+                        viewModel.drawNextNumber()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "dice.fill")
+                            Text(viewModel.isSpinning ? String(localized: "ルーレット抽選中...") : String(localized: "次の数字を引く"))
+                        }
+                        .font(.headline.weight(.black))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(viewModel.canDrawNext ? Color.blue : Color.gray)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .disabled(!viewModel.canDrawNext)
+
+                    Button {
+                        viewModel.toggleAutoDraw()
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: viewModel.isAutoDrawActive ? "pause.fill" : "play.fill")
+                            Text(viewModel.isAutoDrawActive ? String(localized: "停止") : String(localized: "自動"))
+                        }
+                        .font(.headline.weight(.bold))
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(viewModel.isAutoDrawActive ? Color.orange : Color.green)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .disabled(viewModel.remainingNumbers.isEmpty)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+        }
     }
 }

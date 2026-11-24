@@ -92,9 +92,13 @@ struct PlayerScreenView: View {
             }
         }
         .onAppear {
+            UIApplication.shared.isIdleTimerDisabled = true
             withAnimation(.easeInOut(duration: 0.75).repeatForever(autoreverses: true)) {
                 pulseAnimation = true
             }
+        }
+        .onDisappear {
+            UIApplication.shared.isIdleTimerDisabled = false
         }
         .alert(
             "🔒 不正防止ロック中",

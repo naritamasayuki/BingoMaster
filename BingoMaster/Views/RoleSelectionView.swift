@@ -227,7 +227,9 @@ struct RoleSelectionView: View {
                     HStack {
                         Text("バージョン")
                         Spacer()
-                        Text("1.0 (Build 1)")
+                        let version = (Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? "1.0"
+                        let build = (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String) ?? "1"
+                        Text("\(version) (Build \(build))")
                             .foregroundStyle(.secondary)
                     }
                     .font(.caption)

@@ -1,3 +1,4 @@
+import CoreImage.CIFilterBuiltins
 import SwiftUI
 import UIKit
 
@@ -10,6 +11,7 @@ struct HostScreenView: View {
     @State private var showBugReportSheet: Bool = false
     @State private var showPartyGoodsSheet: Bool = false
     @State private var showBigScreenMode: Bool = false
+    @State private var showInviteQRSheet: Bool = false
     @State private var inspectingPlayer: PlayerToHostPayload?
 
     var body: some View {
@@ -132,6 +134,10 @@ struct HostScreenView: View {
         .sheet(isPresented: $showPartyGoodsSheet) {
             PartyGoodsSheetView()
         }
+        // 参加者招待QRコードシート
+        .sheet(isPresented: $showInviteQRSheet) {
+            HostInviteQRSheetView()
+        }
         // 大画面プロジェクター表示モード（AirPlay / HDMI投影向け）
         .fullScreenCover(isPresented: $showBigScreenMode) {
             HostBigScreenView(viewModel: viewModel) {
@@ -185,6 +191,25 @@ struct HostScreenView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            Button {
+                showInviteQRSheet = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "qrcode")
+                    Text("参加者を招待（QRコード・アプリ共有）")
+                        .font(.caption.weight(.bold))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(Color.blue.opacity(0.10))
+                .foregroundStyle(.blue)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .buttonStyle(.plain)
 
             if !viewModel.playerStatuses.isEmpty {
                 Text("💡 参加者名をタップすると5×5カードの答え合わせ（不正検算）ができます")
@@ -1021,6 +1046,77 @@ private struct HostBigScreenView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 20)
+            }
+        }
+    }
+}
+
+// MARK: - 参加者招待 QR コード＆アプリ共有シート
+private struct HostInviteQRSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let appStoreURLString = "https://apps.apple.com/app/id6837661914"
+    private let context = CIContext()
+    private let filter = CIFilter.qrCodeGenerator()
+
+    private var qrImage: UIImage? {
+        filter.message = Data(appStoreURLString.utf8)
+        filter.correctionLevel = "M"
+        guard let outputImage = filter.outputImage else { return nil }
+        let transformed = outputImage.transformed(by: CGAffineTransform(scaleX: 10, y: 10))
+        guard let cgImage = context.createCGImage(transformed, from: transformed.extent) else { return nil }
+        return UIImage(cgImage: cgImage)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("参加者の iPhone でこの QR コードを読み取ると、App Store から「ビンゴマスター」をすぐダウンロードできます。")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+
+                if let image = qrImage {
+                    Image(uiImage: image)
+                        .interpolation(.none)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 220, height: 220)
+                        .padding(16)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: Color.black.opacity(0.12), radius: 10, y: 4)
+                }
+
+                if let shareURL = URL(string: appStoreURLString) {
+                    ShareLink(
+                        item: shareURL,
+                        subject: Text("ビンゴマスター"),
+                        message: Text("ビンゴ大会に参加しよう！こちらからアプリをダウンロードしてください。")
+                    ) {
+                        Label("LINE・AirDrop等でリンクを共有", systemImage: "square.and.arrow.up")
+                            .font(.headline.weight(.bold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.blue)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .padding(.horizontal, 24)
+                }
+
+                Spacer()
+            }
+            .padding(.top, 24)
+            .navigationTitle("参加者を招待")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("閉じる") {
+                        dismiss()
+                    }
+                }
             }
         }
     }

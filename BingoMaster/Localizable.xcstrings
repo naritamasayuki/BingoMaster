@@ -5916,6 +5916,151 @@
           }
         }
       }
+    },
+    "参加者を招待（QRコード・アプリ共有）": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加者を招待（QRコード・アプリ共有）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite Players (QR Code & Share App)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请参与者（二维码・分享应用）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀請參與者（QR Code・分享應用程式）"
+          }
+        }
+      }
+    },
+    "参加者の iPhone でこの QR コードを読み取ると、App Store から「ビンゴマスター」をすぐダウンロードできます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加者の iPhone でこの QR コードを読み取ると、App Store から「ビンゴマスター」をすぐダウンロードできます。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Have players scan this QR code with their iPhone camera to download Bingo Master from the App Store."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请参与者使用 iPhone 相机扫描此二维码，即可从 App Store 立即下载「宾果大师」。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請參與者使用 iPhone 相機掃描此 QR Code，即可從 App Store 立即下載「賓果大師」。"
+          }
+        }
+      }
+    },
+    "ビンゴ大会に参加しよう！こちらからアプリをダウンロードしてください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ビンゴ大会に参加しよう！こちらからアプリをダウンロードしてください。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Join our Bingo game! Download Bingo Master from the App Store here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快来参加宾果游戏吧！点击这里下载「宾果大师」应用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快來參加賓果遊戲吧！點擊這裡下載「賓果大師」應用程式。"
+          }
+        }
+      }
+    },
+    "LINE・AirDrop等でリンクを共有": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LINE・AirDrop等でリンクを共有"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share App Link via Messages / AirDrop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过微信・AirDrop 等分享链接"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "透過 LINE・AirDrop 等分享連結"
+          }
+        }
+      }
+    },
+    "参加者を招待": {
+      "extractionState": "manual",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参加者を招待"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite Players"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请参与者"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀請參與者"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

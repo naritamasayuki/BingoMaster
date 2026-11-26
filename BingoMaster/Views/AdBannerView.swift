@@ -1,29 +1,99 @@
+import AppTrackingTransparency
 import SwiftUI
 import UIKit
 #if canImport(GoogleMobileAds)
 import GoogleMobileAds
 #endif
 
+/// Google Mobile Ads SDK の初期化と ATT（App Tracking Transparency）許可リクエストを安全に管理するマネージャ
+@MainActor
+final class AdMobManager: ObservableObject {
+    static let shared = AdMobManager()
+
+    /// Google 公式 iOS テスト用バナー広告ユニット ID（Debug ビルド時の無効クリック防止用）
+    private static let testBannerUnitID = "ca-app-pub-3940256099942544/2435281174"
+
+    @Published private(set) var isInitialized = false
+    private var hasStartedFlow = false
+
+    private init() {}
+
+    /// 現在のビルド構成に応じたバナー広告ユニット ID を返す（Debug は公式テスト ID、Release は本番 ID）
+    var effectiveBannerUnitID: String? {
+        #if DEBUG
+        return Self.testBannerUnitID
+        #else
+        return AppConfig.adMobBannerUnitID
+        #endif
+    }
+
+    /// アプリが前面化した後に ATT ダイアログを表示し、完了後に Google Mobile Ads SDK を初期化する
+    func startAdFlowAfterActive() {
+        guard !hasStartedFlow else {
+            initializeSDKIfNeeded()
+            return
+        }
+        hasStartedFlow = true
+
+        Task { @MainActor in
+            // ウィンドウが完全に前面表示されてから ATT ダイアログを出すための短い待機
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
+                let status = await ATTrackingManager.requestTrackingAuthorization()
+                BingoLogger.logInfo(BingoLogger.game, message: "ATTトラッキング許可ステータス: \(status.rawValue)")
+            }
+            self.initializeSDKIfNeeded()
+        }
+    }
+
+    private func initializeSDKIfNeeded() {
+        guard !isInitialized else { return }
+        guard AppConfig.isAdMobConfigured else {
+            BingoLogger.logWarning(BingoLogger.game, context: "AdMob アプリIDが未設定のため SDK 初期化をスキップしました")
+            return
+        }
+        #if canImport(GoogleMobileAds)
+        MobileAds.shared.start { status in
+            let adapterCount = status.adapterStatusesByClassName.count
+            BingoLogger.logInfo(BingoLogger.game, message: "Google Mobile Ads SDK 初期化完了 (アダプタ数: \(adapterCount))")
+        }
+        #endif
+        isInitialized = true
+    }
+}
+
 /// 画面下部に固定表示する広告バナー枠コンポーネント（標準 320×50 相当）。
-/// 開発方針に基づき、`AppConfig`（環境変数 / Info.plist）から AdMob 広告ユニットIDを安全に読み込み、
-/// GoogleMobileAds SDK 導入時は実バナーを描画し、未配信時はアプリのステータスバーとして自然に描画する（Guideline 2.1 プレースホルダー文字列リジェクト対策済み）。
+/// オンラインで AdMob 広告が読み込まれた際は実バナーを表示し、オフラインや未配信時はステータスバーへ安全にフォールバックする。
 struct AdBannerView: View {
+    @ObservedObject private var adManager = AdMobManager.shared
+    @State private var isAdLoaded = false
+
     var body: some View {
         VStack(spacing: 0) {
             Divider()
 
-            #if canImport(GoogleMobileAds)
-            if let unitID = AppConfig.adMobBannerUnitID {
-                GADBannerContainerView(adUnitID: unitID)
+            ZStack {
+                fallbackBannerContent
+                    .opacity(isAdLoaded ? 0.0 : 1.0)
+
+                #if canImport(GoogleMobileAds)
+                if adManager.isInitialized, let unitID = adManager.effectiveBannerUnitID {
+                    AdMobBannerRepresentableView(
+                        adUnitID: unitID,
+                        isAdLoaded: $isAdLoaded
+                    )
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
-                    .background(Color(uiColor: .secondarySystemBackground))
-            } else {
-                fallbackBannerContent
+                    .opacity(isAdLoaded ? 1.0 : 0.0)
+                }
+                #endif
             }
-            #else
-            fallbackBannerContent
-            #endif
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(Color(uiColor: .secondarySystemBackground))
+        }
+        .onAppear {
+            adManager.startAdFlowAfterActive()
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("ビンゴマスター ステータスバー")
@@ -65,22 +135,50 @@ struct AdBannerView: View {
 }
 
 #if canImport(GoogleMobileAds)
-private struct GADBannerContainerView: UIViewRepresentable {
+private struct AdMobBannerRepresentableView: UIViewRepresentable {
     let adUnitID: String
+    @Binding var isAdLoaded: Bool
 
-    func makeUIView(context: Context) -> GADBannerView {
-        let banner = GADBannerView(adSize: GADAdSizeBanner)
+    func makeCoordinator() -> Coordinator {
+        Coordinator(isAdLoaded: $isAdLoaded)
+    }
+
+    func makeUIView(context: Context) -> BannerView {
+        let banner = BannerView(adSize: AdSizeBanner)
         banner.adUnitID = adUnitID
+        banner.delegate = context.coordinator
         banner.rootViewController = UIApplication.shared
             .connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .first { $0.isKeyWindow }?
             .rootViewController
-        banner.load(GADRequest())
+        banner.load(Request())
         return banner
     }
 
-    func updateUIView(_ uiView: GADBannerView, context: Context) {}
+    func updateUIView(_ uiView: BannerView, context: Context) {}
+
+    final class Coordinator: NSObject, BannerViewDelegate {
+        @Binding var isAdLoaded: Bool
+
+        init(isAdLoaded: Binding<Bool>) {
+            _isAdLoaded = isAdLoaded
+        }
+
+        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+            BingoLogger.logInfo(BingoLogger.game, message: "AdMob バナー広告を受信しました")
+            Task { @MainActor in
+                self.isAdLoaded = true
+            }
+        }
+
+        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+            BingoLogger.logWarning(BingoLogger.game, context: "AdMob バナー広告の取得に失敗したためフォールバック表示を維持します: \(error.localizedDescription)")
+            Task { @MainActor in
+                self.isAdLoaded = false
+            }
+        }
+    }
 }
 #endif

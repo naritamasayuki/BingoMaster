@@ -32,6 +32,7 @@
 		A10000230000000000000001 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A20000230000000000000001 /* InfoPlist.xcstrings */; };
 		A10000240000000000000001 /* AmazonAffiliateHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000240000000000000001 /* AmazonAffiliateHelper.swift */; };
 		A10000250000000000000001 /* PartyGoodsRecommendationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000250000000000000001 /* PartyGoodsRecommendationView.swift */; };
+		A10000260000000000000001 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = AD0000010000000000000001 /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,6 +81,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000260000000000000001 /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,6 +209,9 @@
 			dependencies = (
 			);
 			name = BingoMaster;
+			packageProductDependencies = (
+				AD0000010000000000000001 /* GoogleMobileAds */,
+			);
 			productName = BingoMaster;
 			productReference = A00000010000000000000001 /* BingoMaster.app */;
 			productType = "com.apple.product-type.application";
@@ -250,6 +255,9 @@
 				Base,
 			);
 			mainGroup = A40000000000000000000001;
+			packageReferences = (
+				AE0000010000000000000001 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+			);
 			productRefGroup = A40000070000000000000001 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -377,7 +385,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomaster;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -402,7 +410,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomaster;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -422,7 +430,7 @@
 				DEVELOPMENT_TEAM = 4KR684T6KV;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomasterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -441,7 +449,7 @@
 				DEVELOPMENT_TEAM = 4KR684T6KV;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.naritamasayuki.bingomasterTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -482,6 +490,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AE0000010000000000000001 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AD0000010000000000000001 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE0000010000000000000001 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A80000010000000000000001 /* Project object */;
 }

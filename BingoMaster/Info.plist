@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1</string>
+	<string>1.2</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>GADApplicationIdentifier</key>
@@ -48,6 +48,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>近くの司会者および参加者とビンゴの出目をリアルタイム同期するためにローカルネットワークを使用します。</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>お客様に関連性の高い広告を表示し、アプリを無料で提供し続けるためにトラッキング許可を使用しています。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

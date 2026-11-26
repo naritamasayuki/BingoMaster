@@ -58,6 +58,35 @@
           }
         }
       }
+    },
+    "NSUserTrackingUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used to deliver more relevant ads and keep this app free to use."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "お客様に関連性の高い広告を表示し、アプリを無料で提供し続けるためにトラッキング許可を使用しています。"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用于向您展示更相关的广告，以支持我们持续免费提供本应用。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用於向您顯示更相關的廣告，以支持我們持續免費提供本應用程式。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

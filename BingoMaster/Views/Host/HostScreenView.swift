@@ -4,6 +4,7 @@ import UIKit
 
 struct HostScreenView: View {
     @ObservedObject var viewModel: HostViewModel
+    @ObservedObject var syncManager: MultipeerSyncManager
     @ObservedObject private var speaker = BingoSpeaker.shared
     let onExitRole: () -> Void
 
@@ -127,7 +128,7 @@ struct HostScreenView: View {
             BugReportSheetView(
                 roleLabel: String(localized: "司会者モード（ホスト）"),
                 drawnCount: viewModel.drawnNumbers.count,
-                connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
+                connectedPeerCount: syncManager.connectedPeerNames.count
             )
         }
         // ビンゴ関連グッズ案内シート（PR）
@@ -144,20 +145,16 @@ struct HostScreenView: View {
                 showBigScreenMode = false
             }
         }
-        // イベント進行中に画面が自動スリープしないように制御
+        // イベント進行中に画面が自動スリープしないように制御（fullScreenCover 開閉時の onDisappear で解除されないよう解除処理は行わない）
         .onAppear {
             UIApplication.shared.isIdleTimerDisabled = true
-        }
-        .onDisappear {
-            UIApplication.shared.isIdleTimerDisabled = false
-            viewModel.stopAutoDraw()
         }
     }
 
     // MARK: - サブビュー構成
 
     private var connectionAndStatusBar: some View {
-        let peerCount = viewModel.syncManager.connectedPeerNames.count
+        let peerCount = syncManager.connectedPeerNames.count
         let savedPlayerCount = viewModel.playerStatuses.count
         let bingoPlayers = viewModel.playerStatuses.values
             .filter { $0.status == .bingo }
@@ -190,6 +187,15 @@ struct HostScreenView: View {
                         .font(.caption.weight(.bold))
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            if syncManager.rejectedInvitationCount > 0 || peerCount >= MultipeerSyncManager.maxPlayerPeers {
+                Label(
+                    String(localized: "同時接続の上限（最大\(MultipeerSyncManager.maxPlayerPeers)人）に達しています"),
+                    systemImage: "exclamationmark.triangle.fill"
+                )
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.orange)
             }
 
             Button {

@@ -44,6 +44,11 @@ final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging 
     @Published private(set) var currentRole: Role = .none
     @Published private(set) var connectedPeerNames: [String] = []
     @Published private(set) var isActive: Bool = false
+    /// 同時接続上限（自分を含め kMCSessionMaximumNumberOfPeers 台）で断った招待の件数（司会者画面の「満員」表示用）
+    @Published private(set) var rejectedInvitationCount: Int = 0
+
+    /// 司会者が受け入れられる参加者の最大数（自分の1台を除く = 7人）
+    static let maxPlayerPeers = kMCSessionMaximumNumberOfPeers - 1
 
     var onPeerConnectedToHost: ((MCPeerID) -> Void)?
     var onPeerConnectedToPlayer: ((MCPeerID) -> Void)?
@@ -68,8 +73,8 @@ final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging 
         stop()
         currentRole = .host
 
-        // 通信経路の盗聴・改ざんリスクを低減しつつ、多様なiOS端末間で接続性を維持するため .optional を採用
-        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .optional)
+        // 会場内の盗聴・改ざんを防ぐため暗号化を必須にする（参加者側と必ず揃えること）
+        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
         newSession.delegate = self
         self.session = newSession
 
@@ -89,7 +94,8 @@ final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging 
         stop()
         currentRole = .player
 
-        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .optional)
+        // 会場内の盗聴・改ざんを防ぐため暗号化を必須にする（司会者側と必ず揃えること）
+        let newSession = MCSession(peer: myPeerID, securityIdentity: nil, encryptionPreference: .required)
         newSession.delegate = self
         self.session = newSession
 
@@ -102,6 +108,23 @@ final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging 
         self.browser = newBrowser
         self.isActive = true
         BingoLogger.logInfo(BingoLogger.sync, message: "参加者（Player）としてP2Pブラウジングを開始しました")
+    }
+
+    /// バックグラウンド復帰時などに広告・探索を再開して再接続しやすくする
+    func restartDiscoveryIfNeeded() {
+        guard isActive else { return }
+        switch currentRole {
+        case .host:
+            advertiser?.stopAdvertisingPeer()
+            advertiser?.startAdvertisingPeer()
+        case .player:
+            if connectedPeerNames.isEmpty {
+                browser?.stopBrowsingForPeers()
+                browser?.startBrowsingForPeers()
+            }
+        case .none:
+            break
+        }
     }
 
     func stop() {
@@ -120,6 +143,7 @@ final class MultipeerSyncManager: NSObject, ObservableObject, BingoSyncManaging 
         connectedPeerNames = []
         currentRole = .none
         isActive = false
+        rejectedInvitationCount = 0
     }
 
     // MARK: - Send Payloads
@@ -181,6 +205,11 @@ extension MultipeerSyncManager: MCSessionDelegate {
                 }
             case .notConnected:
                 BingoLogger.logWarning(BingoLogger.sync, context: "Peerとの接続が切断されました: \(peerID.displayName)")
+                // 参加者が司会者を見失った場合、再探索をトリガーして自動再接続を促す
+                if self.currentRole == .player, self.connectedPeerNames.isEmpty {
+                    self.browser?.stopBrowsingForPeers()
+                    self.browser?.startBrowsingForPeers()
+                }
             case .connecting:
                 break
             @unknown default:
@@ -256,8 +285,22 @@ extension MultipeerSyncManager: MCNearbyServiceAdvertiserDelegate {
         invitationHandler: @escaping (Bool, MCSession?) -> Void
     ) {
         Task { @MainActor in
-            // イベント会場等で大人数が手間なく参加できるよう、司会者への接続招待は自動承認する
-            invitationHandler(true, self.session)
+            // 停止直後などでセッションがない場合は、nil セッションで承認しないよう必ず拒否する
+            guard self.currentRole == .host, let session = self.session else {
+                invitationHandler(false, nil)
+                return
+            }
+            // MCSession は自分を含め最大 8 台（参加者最大 7 人）のため、上限超過時は拒否して司会者へ通知する
+            guard session.connectedPeers.count < Self.maxPlayerPeers else {
+                self.rejectedInvitationCount += 1
+                BingoLogger.logWarning(
+                    BingoLogger.sync,
+                    context: "同時接続上限(\(Self.maxPlayerPeers)人)に達したため招待を拒否しました: \(peerID.displayName)"
+                )
+                invitationHandler(false, nil)
+                return
+            }
+            invitationHandler(true, session)
         }
     }
 

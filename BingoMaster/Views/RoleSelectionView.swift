@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RoleSelectionView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @StateObject private var syncManager = MultipeerSyncManager()
     @State private var selectedRole: MultipeerSyncManager.Role = .none
     @State private var hostViewModel: HostViewModel?
@@ -18,17 +19,22 @@ struct RoleSelectionView: View {
                     selectionMenuContent
                 case .host:
                     if let hostVM = hostViewModel {
-                        HostScreenView(viewModel: hostVM) {
+                        HostScreenView(viewModel: hostVM, syncManager: syncManager) {
                             returnToRoleSelection()
                         }
                     }
                 case .player:
                     if let playerVM = playerViewModel {
-                        PlayerScreenView(viewModel: playerVM) {
+                        PlayerScreenView(viewModel: playerVM, syncManager: syncManager) {
                             returnToRoleSelection()
                         }
                     }
                 }
+            }
+        }
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .active {
+                syncManager.restartDiscoveryIfNeeded()
             }
         }
         .onAppear {
@@ -209,10 +215,15 @@ struct RoleSelectionView: View {
                 }
 
                 Section("2. プライバシーとデータの取り扱い") {
-                    Text("・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われ、外部サーバーへ個人情報を送信・収集することはありません。")
+                    Text("・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われます。\n・本アプリは無料提供のため Google AdMob による広告を表示します。広告の配信・効果測定のため、Google が広告識別子（トラッキング許可時のみ）や端末情報等を収集・利用する場合があります。トラッキングは iOS の「設定 > プライバシーとセキュリティ > トラッキング」でいつでも変更できます。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineSpacing(3)
+
+                    if let policyURL = URL(string: "https://naritamasayuki.github.io/BingoMaster/") {
+                        Link("プライバシーポリシー（Web版）を開く", destination: policyURL)
+                            .font(.caption.weight(.semibold))
+                    }
                 }
 
                 Section("3. アプリ情報") {
@@ -317,6 +328,8 @@ struct RoleSelectionView: View {
     private func returnToRoleSelection() {
         BingoStorage.saveActiveRole("none")
         BingoSpeaker.shared.stopSpeaking()
+        // 画面の onDisappear（fullScreenCover 開閉でも発火し得る）ではなく、モード離脱時にだけ自動抽選を止める
+        hostViewModel?.stopAutoDraw()
         syncManager.stop()
         hostViewModel = nil
         playerViewModel = nil

@@ -412,30 +412,14 @@ enum BingoStorage {
     }
 
     static func savePlayerCardCells(_ cells: [BingoCardCell]) {
-        saveCodable(cells, forKey: playerCardCellsKey, mirrorToKeychain: true)
+        // ゲーム進行状態は UserDefaults のみに保存（再インストール時に古いロック状態が残留しないようにし、メインスレッドの Keychain 書き込み負荷も解消）
+        saveCodable(cells, forKey: playerCardCellsKey, mirrorToKeychain: false)
     }
 
     static func loadPlayerCardCells() -> [BingoCardCell]? {
         if let cells = loadCodable([BingoCardCell].self, forKey: playerCardCellsKey),
            cells.count == 25 {
             return cells
-        }
-        // アプリを削除・再インストールして UserDefaults を消去した場合でも Keychain から元のカードを復元し、不正な引き直しを防ぐ
-        if let keychainData = loadFromKeychain(account: playerCardCellsKey) {
-            do {
-                let cells = try JSONDecoder().decode([BingoCardCell].self, from: keychainData)
-                if cells.count == 25 {
-                    UserDefaults.standard.set(keychainData, forKey: playerCardCellsKey)
-                    BingoLogger.logInfo(BingoLogger.storage, message: "Keychainバックアップから参加者の5×5カードを復元しました")
-                    return cells
-                }
-            } catch {
-                BingoLogger.logError(
-                    BingoLogger.storage,
-                    context: "Keychain内の参加者カードデータのデコードに失敗しました",
-                    error: error
-                )
-            }
         }
         return nil
     }
@@ -459,26 +443,19 @@ enum BingoStorage {
     static func clearPlayerCardCells() {
         UserDefaults.standard.removeObject(forKey: playerCardCellsKey)
         UserDefaults.standard.removeObject(forKey: playerDrawnNumbersKey)
+        UserDefaults.standard.removeObject(forKey: playerGameSessionIDKey)
         deleteFromKeychain(account: playerCardCellsKey)
         deleteFromKeychain(account: playerDrawnNumbersKey)
+        deleteFromKeychain(account: playerGameSessionIDKey)
     }
 
     static func savePlayerLockedHostID(_ hostID: String) {
         UserDefaults.standard.set(hostID, forKey: playerLockedHostIDKey)
-        if let data = hostID.data(using: .utf8) {
-            saveToKeychain(data: data, account: playerLockedHostIDKey)
-        }
     }
 
     static func loadPlayerLockedHostID() -> String? {
         if let existing = UserDefaults.standard.string(forKey: playerLockedHostIDKey), !existing.isEmpty {
             return existing
-        }
-        if let keychainData = loadFromKeychain(account: playerLockedHostIDKey),
-           let hostID = String(data: keychainData, encoding: .utf8),
-           !hostID.isEmpty {
-            UserDefaults.standard.set(hostID, forKey: playerLockedHostIDKey)
-            return hostID
         }
         return nil
     }
@@ -490,42 +467,22 @@ enum BingoStorage {
 
     static func savePlayerGameSessionID(_ sessionID: String) {
         UserDefaults.standard.set(sessionID, forKey: playerGameSessionIDKey)
-        if let data = sessionID.data(using: .utf8) {
-            saveToKeychain(data: data, account: playerGameSessionIDKey)
-        }
     }
 
     static func loadPlayerGameSessionID() -> String? {
         if let existing = UserDefaults.standard.string(forKey: playerGameSessionIDKey), !existing.isEmpty {
             return existing
         }
-        if let keychainData = loadFromKeychain(account: playerGameSessionIDKey),
-           let sessionID = String(data: keychainData, encoding: .utf8),
-           !sessionID.isEmpty {
-            UserDefaults.standard.set(sessionID, forKey: playerGameSessionIDKey)
-            return sessionID
-        }
         return nil
     }
 
     static func savePlayerDrawnNumbers(_ numbers: [Int]) {
-        saveCodable(numbers, forKey: playerDrawnNumbersKey, mirrorToKeychain: true)
+        saveCodable(numbers, forKey: playerDrawnNumbersKey, mirrorToKeychain: false)
     }
 
     static func loadPlayerDrawnNumbers() -> [Int] {
         if let numbers = loadCodable([Int].self, forKey: playerDrawnNumbersKey) {
             return numbers
-        }
-        if let keychainData = loadFromKeychain(account: playerDrawnNumbersKey) {
-            do {
-                return try JSONDecoder().decode([Int].self, from: keychainData)
-            } catch {
-                BingoLogger.logError(
-                    BingoLogger.storage,
-                    context: "Keychain内の出目配列デコードに失敗しました",
-                    error: error
-                )
-            }
         }
         return []
     }

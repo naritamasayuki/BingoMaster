@@ -96,7 +96,7 @@ struct AdBannerView: View {
             adManager.startAdFlowAfterActive()
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("ビンゴマスター ステータスバー")
+        .accessibilityLabel(isAdLoaded ? String(localized: "広告バナー") : String(localized: "ビンゴマスター ステータスバー"))
     }
 
     private var fallbackBannerContent: some View {

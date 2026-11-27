@@ -500,4 +500,81 @@ final class BingoMasterTests: XCTestCase {
         XCTAssertFalse(vm.isAutoDrawActive)
         XCTAssertEqual(vm.autoDrawCountdown, 0)
     }
+
+    // MARK: 10. Audit Regression Tests (Ver 1.2 Build 2)
+
+    @MainActor
+    func testPlayerLeaveCurrentGameClearsLockAndArchivesHistory() {
+        let storage = InMemoryBingoStorage()
+        let sync = MockBingoSyncManager()
+        let audio = MockBingoAudioPlayer()
+        let vm = PlayerViewModel(syncManager: sync, storage: storage, audioPlayer: audio)
+        vm.isAutoPunch = true
+
+        let hostPayload = HostToPlayerPayload(
+            action: .drawNumber,
+            hostID: "HOST-A",
+            gameSessionID: "SESSION-1",
+            latestNumber: 41,
+            drawnNumbers: [5, 22, 41],
+            lockedPlayerCards: [:]
+        )
+        vm.handleReceivedHostPayload(hostPayload)
+        XCTAssertTrue(vm.isGameInProgress)
+        XCTAssertEqual(vm.lockedHostID, "HOST-A")
+
+        // 退出操作によりロック・出目が解除され、過去履歴へ保存されること
+        vm.leaveCurrentGame()
+        XCTAssertFalse(vm.isGameInProgress)
+        XCTAssertNil(vm.lockedHostID)
+        XCTAssertNil(vm.currentGameSessionID)
+        XCTAssertTrue(vm.drawnNumbers.isEmpty)
+        XCTAssertEqual(vm.pastGameHistory.count, 1)
+    }
+
+    @MainActor
+    func testPlayerSessionChangeWithDrawnNumbersResetsOldPunchesAndPreventsFalseBingo() {
+        let storage = InMemoryBingoStorage()
+        let sync = MockBingoSyncManager()
+        let audio = MockBingoAudioPlayer()
+        let vm = PlayerViewModel(syncManager: sync, storage: storage, audioPlayer: audio)
+        vm.isAutoPunch = true
+
+        // セッション1で1行目の4マスをすべて当ててビンゴにする
+        let firstRowNumbers = (0..<5).compactMap { index -> Int? in
+            let cell = vm.cardCells[index]
+            return cell.isFree ? nil : cell.number
+        }
+        let session1Payload = HostToPlayerPayload(
+            action: .drawNumber,
+            hostID: "HOST-A",
+            gameSessionID: "SESSION-1",
+            latestNumber: firstRowNumbers.last,
+            drawnNumbers: firstRowNumbers,
+            lockedPlayerCards: [:]
+        )
+        vm.handleReceivedHostPayload(session1Payload)
+        XCTAssertEqual(vm.evaluation.status, .bingo)
+
+        // リセット通知を取りこぼした状態で、セッション2の1球目を受信したとき旧ゲームの穴が残らず偽ビンゴにならないこと
+        let session2Payload = HostToPlayerPayload(
+            action: .drawNumber,
+            hostID: "HOST-A",
+            gameSessionID: "SESSION-2",
+            latestNumber: 1,
+            drawnNumbers: [1],
+            lockedPlayerCards: [:]
+        )
+        vm.handleReceivedHostPayload(session2Payload)
+        XCTAssertEqual(vm.currentGameSessionID, "SESSION-2")
+        XCTAssertEqual(vm.evaluation.status, .normal)
+        XCTAssertNil(vm.celebrationBannerText)
+        let invalidPunched = vm.cardCells.filter { !$0.isFree && !$0.isDrawn && $0.isPunched }
+        XCTAssertTrue(invalidPunched.isEmpty)
+    }
+
+    @MainActor
+    func testMultipeerMaxPlayerPeersIsSeven() {
+        XCTAssertEqual(MultipeerSyncManager.maxPlayerPeers, 7)
+    }
 }

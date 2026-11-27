@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PlayerScreenView: View {
     @ObservedObject var viewModel: PlayerViewModel
+    @ObservedObject var syncManager: MultipeerSyncManager
     let onExitRole: () -> Void
 
     @State private var isEditingName: Bool = false
@@ -9,6 +10,7 @@ struct PlayerScreenView: View {
     @State private var pulseAnimation: Bool = false
     @State private var showPastHistorySheet: Bool = false
     @State private var showBugReportSheet: Bool = false
+    @State private var showLeaveGameAlert: Bool = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -60,19 +62,13 @@ struct PlayerScreenView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
                     if viewModel.isGameInProgress {
-                        viewModel.antiCheatAlertMessage = String(localized: "ゲーム進行中（抽選開始後）は、なりすまし司会者や不正なカードリセットを防ぐためモードを切り替えられません。司会者がゲームをリセットした後に切り替えられます。")
+                        showLeaveGameAlert = true
                     } else {
                         onExitRole()
                     }
                 } label: {
-                    HStack(spacing: 3) {
-                        if viewModel.isGameInProgress {
-                            Image(systemName: "lock.fill")
-                                .font(.caption2)
-                        }
-                        Text("モード選択へ")
-                            .font(.subheadline)
-                    }
+                    Text("モード選択へ")
+                        .font(.subheadline)
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -97,8 +93,14 @@ struct PlayerScreenView: View {
                 pulseAnimation = true
             }
         }
-        .onDisappear {
-            UIApplication.shared.isIdleTimerDisabled = false
+        .alert("ゲームから退出しますか？", isPresented: $showLeaveGameAlert) {
+            Button("いいえ", role: .cancel) {}
+            Button("退出してモード選択へ", role: .destructive) {
+                viewModel.leaveCurrentGame()
+                onExitRole()
+            }
+        } message: {
+            Text("現在のカードを履歴に保存し、接続ロックを解除してモード選択へ戻ります。別の司会者のゲームへ参加したい場合や終了後にお使いください。")
         }
         .alert(
             "🔒 不正防止ロック中",
@@ -134,7 +136,7 @@ struct PlayerScreenView: View {
             BugReportSheetView(
                 roleLabel: String(localized: "参加者モード（プレイヤー）"),
                 drawnCount: viewModel.drawnNumbers.count,
-                connectedPeerCount: viewModel.syncManager.connectedPeerNames.count
+                connectedPeerCount: syncManager.connectedPeerNames.count
             )
         }
     }
@@ -142,7 +144,7 @@ struct PlayerScreenView: View {
     // MARK: - サブビュー構成
 
     private var connectionAndLatestNumberHeader: some View {
-        let isConnected = !viewModel.syncManager.connectedPeerNames.isEmpty
+        let isConnected = !syncManager.connectedPeerNames.isEmpty
         let latestNum = viewModel.latestDrawnNumber
         let latestColumn = latestNum.map { BingoColumn.column(for: $0) }
 

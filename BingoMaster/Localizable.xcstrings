@@ -581,35 +581,6 @@
         }
       }
     },
-    "・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われ、外部サーバーへ個人情報を送信・収集することはありません。": {
-      "extractionState": "manual",
-      "localizations": {
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われ、外部サーバーへ個人情報を送信・収集することはありません。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "• Drawn number history, bingo card state, nickname, and anti-cheat device ID are stored solely on your device (UserDefaults and Keychain).\n• Data sync between host and players occurs directly between nearby devices via Apple's MultipeerConnectivity; no personal data is transmitted to or collected by external servers."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "・本应用保存的开奖历史、宾果卡状态、昵称及防作弊用设备唯一ID均仅保存在您的设备本地（UserDefaults 与 Keychain）。\n・主持人与参与者之间的数据同步仅通过 Apple 标准的近距离 P2P 通信（MultipeerConnectivity）在现场设备间直接进行，不会向外部服务器发送或收集个人信息。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "・本應用程式儲存的開獎歷史、賓果卡狀態、暱稱及防作弊用裝置唯一ID均僅儲存在您的裝置本地（UserDefaults 與 Keychain）。\n・主持人與參與者之間的資料同步僅透過 Apple 標準的近距離 P2P 通訊（MultipeerConnectivity）在現場裝置間直接進行，不會向外部伺服器傳送或收集個人資訊。"
-          }
-        }
-      }
-    },
     "3. アプリ情報": {
       "extractionState": "manual",
       "localizations": {
@@ -6058,6 +6029,167 @@
           "stringUnit": {
             "state": "translated",
             "value": "邀請參與者"
+          }
+        }
+      }
+    },
+    "・本アプリが保存する出目履歴、ビンゴカード状態、ニックネーム、および不正防止用の端末固有IDは、すべてお客様の端末内（UserDefaults および Keychain）にのみ保存されます。\n・司会者と参加者間のデータ同期は、Apple標準の近距離P2P通信（MultipeerConnectivity）を介して会場内の端末間でのみ直接行われます。\n・本アプリは無料提供のため Google AdMob による広告を表示します。広告の配信・効果測定のため、Google が広告識別子（トラッキング許可時のみ）や端末情報等を収集・利用する場合があります。トラッキングは iOS の「設定 > プライバシーとセキュリティ > トラッキング」でいつでも変更できます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "• Drawn number history, bingo card state, nickname, and anti-cheat device ID are stored solely on your device (UserDefaults and Keychain).\n• Data sync between host and players occurs directly between nearby devices via Apple's MultipeerConnectivity.\n• This app shows ads via Google AdMob to stay free. For ad delivery and measurement, Google may collect and use the advertising identifier (only if you allow tracking) and device information. You can change tracking at any time in iOS Settings > Privacy & Security > Tracking."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "・本应用保存的开奖历史、宾果卡状态、昵称及防作弊用设备唯一ID均仅保存在您的设备本地（UserDefaults 与 Keychain）。\n・主持人与参与者之间的数据同步仅通过 Apple 标准的近距离 P2P 通信（MultipeerConnectivity）在现场设备间直接进行。\n・为保持免费，本应用通过 Google AdMob 展示广告。为投放广告和统计效果，Google 可能会收集和使用广告标识符（仅在您允许跟踪时）及设备信息。您可随时在 iOS「设置 > 隐私与安全性 > 跟踪」中更改。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "・本應用程式儲存的開獎歷史、賓果卡狀態、暱稱及防作弊用裝置唯一ID均僅儲存在您的裝置本地（UserDefaults 與 Keychain）。\n・主持人與參與者之間的資料同步僅透過 Apple 標準的近距離 P2P 通訊（MultipeerConnectivity）在現場裝置間直接進行。\n・為維持免費，本應用程式透過 Google AdMob 顯示廣告。為投放廣告及評估成效，Google 可能會收集及使用廣告識別碼（僅在您允許追蹤時）與裝置資訊。您可隨時在 iOS「設定 > 隱私權與安全性 > 追蹤」中變更。"
+          }
+        }
+      }
+    },
+    "プライバシーポリシー（Web版）を開く": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Privacy Policy (Web)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开隐私政策（网页版）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟隱私權政策（網頁版）"
+          }
+        }
+      }
+    },
+    "ゲームから退出しますか？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave this game?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定退出当前游戏？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確定退出目前遊戲？"
+          }
+        }
+      }
+    },
+    "退出してモード選択へ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave & Return to Menu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出并返回模式选择"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出並返回模式選擇"
+          }
+        }
+      }
+    },
+    "現在のカードを履歴に保存し、接続ロックを解除してモード選択へ戻ります。別の司会者のゲームへ参加したい場合や終了後にお使いください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your current card will be saved to history and the host lock will be cleared so you can return to the menu or join another host."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前卡片将保存到历史记录，并解除主持人锁定返回模式选择。游戏结束或想加入其他主持人时可使用。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前的卡片將儲存至歷史紀錄，並解除主持人鎖定返回模式選擇。遊戲結束或想加入其他主持人時可使用。"
+          }
+        }
+      }
+    },
+    "同時接続の上限（最大%lld人）に達しています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simultaneous connection limit reached (max %lld players)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达到同时连接人数上限（最多 %lld 人）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達到同時連線人數上限（最多 %lld 人）"
+          }
+        }
+      }
+    },
+    "広告バナー": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ad Banner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广告横幅"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "廣告橫幅"
           }
         }
       }

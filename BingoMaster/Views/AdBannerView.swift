@@ -56,9 +56,13 @@ final class AdMobManager: ObservableObject {
         MobileAds.shared.start { status in
             let adapterCount = status.adapterStatusesByClassName.count
             BingoLogger.logInfo(BingoLogger.game, message: "Google Mobile Ads SDK 初期化完了 (アダプタ数: \(adapterCount))")
+            Task { @MainActor in
+                self.isInitialized = true
+            }
         }
-        #endif
+        #else
         isInitialized = true
+        #endif
     }
 }
 
@@ -147,20 +151,42 @@ private struct AdMobBannerRepresentableView: UIViewRepresentable {
         let banner = BannerView(adSize: AdSizeBanner)
         banner.adUnitID = adUnitID
         banner.delegate = context.coordinator
-        banner.rootViewController = UIApplication.shared
-            .connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }?
-            .rootViewController
-        banner.load(Request())
+        if let rootVC = Self.activeRootViewController() {
+            banner.rootViewController = rootVC
+            context.coordinator.hasLoadedInitialRequest = true
+            banner.load(Request())
+        }
         return banner
     }
 
-    func updateUIView(_ uiView: BannerView, context: Context) {}
+    func updateUIView(_ uiView: BannerView, context: Context) {
+        if uiView.rootViewController == nil, let rootVC = Self.activeRootViewController() {
+            uiView.rootViewController = rootVC
+        }
+        if !context.coordinator.hasLoadedInitialRequest, uiView.rootViewController != nil {
+            context.coordinator.hasLoadedInitialRequest = true
+            uiView.load(Request())
+        }
+    }
+
+    private static func activeRootViewController() -> UIViewController? {
+        let windowScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        let keyRoot = windowScenes
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow && $0.rootViewController != nil }?
+            .rootViewController
+        if let keyRoot {
+            return keyRoot
+        }
+        return windowScenes
+            .flatMap { $0.windows }
+            .first { $0.rootViewController != nil }?
+            .rootViewController
+    }
 
     final class Coordinator: NSObject, BannerViewDelegate {
         @Binding var isAdLoaded: Bool
+        var hasLoadedInitialRequest = false
 
         init(isAdLoaded: Binding<Bool>) {
             _isAdLoaded = isAdLoaded
